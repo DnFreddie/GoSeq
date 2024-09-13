@@ -14,15 +14,21 @@ import (
 )
 
 const AGENDA = "/home/rocky/Documents/Agenda/"
-const JOINED = "/home/rocky/Documents/Agenda/.joined.md"
+const JOINED = "/home/rocky/Documents/Agenda/.joined_test.md"
 
 type Note struct {
-	Date     string
-	Contents []string
+	Date     time.Time
+	Contents []byte
 	Path     string
 }
 
 func (n *Note) writeNote() error {
+	if n.Path == "" && !n.Date.IsZero() {
+
+		n.Path = n.Date.Format("2006-01-02.md")
+
+	}
+
 	absPath := path.Join(AGENDA, n.Path)
 	if _, err := os.Stat(absPath); errors.Is(err, os.ErrNotExist) {
 
@@ -37,16 +43,14 @@ func (n *Note) writeNote() error {
 
 	writer := bufio.NewWriter(f)
 
-	_, err = writer.WriteString(n.Date + "\n")
+	_, err = writer.WriteString(n.parseDate() + "\n")
 	if err != nil {
 		return err
 	}
 
-	for _, content := range n.Contents {
-		_, err = writer.WriteString(content + "\n")
-		if err != nil {
-			return err
-		}
+	_, err = writer.Write(n.Contents)
+	if err != nil {
+		return err
 	}
 
 	err = writer.Flush()
@@ -89,7 +93,7 @@ func ScanEverything() {
 
 			err := n.writeNote()
 			if err != nil {
-				fmt.Printf("The %v note has errored: %v\n",n.Path,err)
+				fmt.Printf("The %v note has errored: %v\n", n.Path, err)
 			}
 		}(note)
 	}
@@ -98,37 +102,43 @@ func ScanEverything() {
 
 }
 
+func (n *Note) parseDate() string {
+	layout := "Mon Jan 2 15:04:05 PM MST 2006"
+	formated_Date := n.Date.Format(layout)
+
+	return formated_Date
+}
+
 func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 	s := bufio.NewScanner(contents)
 	var currentNote Note
 	isCollecting := false
 
+	layout := "Mon Jan 02 03:04:05 PM MST 2006"
+
 	for s.Scan() {
 		line := s.Text()
+		trimmedLine := strings.TrimSpace(line)
 
-		if strings.Contains(line, "START") {
-			isCollecting = true
+		parsedTime, err := time.Parse(layout, trimmedLine)
+		if err == nil {
+			if !isCollecting {
+				currentNote = Note{Date: parsedTime}
+				isCollecting = true
+			}
+			continue
+		}
+
+		if strings.EqualFold(trimmedLine, "END") {
+			if isCollecting {
+				ch <- currentNote
+				isCollecting = false 
+			}
 			continue
 		}
 
 		if isCollecting {
-			if currentNote.Date == "" {
-				trimmedLine := strings.TrimSpace(line)
-				currentNote.Date = trimmedLine
-				err := currentNote.parseDate()
-				if err != nil {
-					fmt.Printf("Parising failed fo %v due to %v\n", currentNote.Path, err)
-					continue
-				}
-			} else if line != "END" {
-				currentNote.Contents = append(currentNote.Contents, line)
-			}
-		}
-
-		if line == "END" && isCollecting {
-			ch <- currentNote
-			currentNote = Note{}
-			isCollecting = false
+			currentNote.Contents = append(currentNote.Contents, []byte(line+"\n")...)
 		}
 	}
 
@@ -136,16 +146,6 @@ func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 		return err
 	}
 
-	return nil
-}
-
-func (n *Note) parseDate() error {
-	layout := "Mon Jan 2 15:04:05 PM MST 2006"
-	parsedTime, err := time.Parse(layout, n.Date)
-	if err != nil {
-		return err
-	}
-	n.Path = parsedTime.Format("2006-01-02.md")
 	return nil
 }
 

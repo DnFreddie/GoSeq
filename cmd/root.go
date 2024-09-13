@@ -4,8 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"DnFreddie/GoSeq/lib"
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,13 +27,16 @@ to quickly create a Cobra application.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := lib.DailyNote()
+	// err := lib.DailyNote()
 
-	if err != nil {
-fmt.Println(err)
-		os.Exit(1)
-	}
-	err = rootCmd.Execute()
+	// if err != nil {
+// fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+	//lib.RunTerm()
+
+///	errror  := lib.ChoseNote()
+	err := rootCmd.Execute()
 
 	if err != nil {
 		os.Exit(1)
