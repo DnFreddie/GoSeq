@@ -30,10 +30,9 @@ func checkAgenda() string {
 
 func DailyNote() error {
 	agenda := checkAgenda()
-	layout := "Mon Jan  2 15:04:05 PM MST 2006"
 	now := time.Now()
-	date := now.Format("2006-01-02")
-	formattedTime := now.Format(layout)
+	date := now.Format(string(FileDate))
+	formattedTime := now.Format(string(FullDate))
 
 	dailyNote := path.Join(agenda, date+".md")
 	if _, err := os.Stat(dailyNote); errors.Is(err, os.ErrNotExist) {
@@ -55,30 +54,6 @@ func DailyNote() error {
 }
 
 
-func parseTimeNote(d string) (time.Time, string, error) {
-    layoutISO := "2006-01-02"
-    layoutRequested := "January 2 2006"
-
-    var date time.Time
-    var err error
-    var formattedDate string
-
-    if strings.Contains(d, "-") {
-        date, err = time.Parse(layoutISO, d) 
-        if err != nil {
-            return time.Time{}, "", err
-        }
-        formattedDate = date.Format(layoutRequested) 
-    } else {
-        date, err = time.Parse(layoutRequested, d) 
-        if err != nil {
-            return time.Time{}, "", err
-        }
-        formattedDate = date.Format(layoutISO) 
-    }
-
-    return date, formattedDate, nil
-}
 
 
 func ChoseNote() error {
@@ -92,14 +67,14 @@ func ChoseNote() error {
 	var names []string
 	for _, entry := range entries {
 		if !entry.IsDir() {
+			dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
+			fmtDate,err := time.Parse(string(FileDate),dateStirng)
 
-			raw_date := strings.Replace(entry.Name(), ".md", "", -1)
-			_,fmtDate, err := parseTimeNote(raw_date)
 			if err != nil {
 				continue
 			}
 
-			names = append(names, fmtDate)
+			names = append(names, fmtDate.Format(string(FullDate)))
 		}
 	}
 
@@ -108,13 +83,13 @@ func ChoseNote() error {
 		return err
 	}
 
-	date,fmtDate, err := parseTimeNote(choice)
+	date,err := time.Parse(string(FullDate),choice) 
 	if err != nil {
 		return err
 	}
 
 	chosenNote := Note{
-		Path: path.Join(AGENDA, fmtDate+".md"),
+		Path: path.Join(AGENDA, date.Format(string(FileDate)+".md")),
 		Date: date,
 	}
 	err = edit(chosenNote.Path)

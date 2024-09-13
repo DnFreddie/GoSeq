@@ -13,13 +13,9 @@ import (
 // newCmd represents the new command
 var newCmd = &cobra.Command{
 	Use:   "new",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Create a new daily note ",
+	Long: `Create a new daily note or open an exsisitng one for today
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := lib.DailyNote()
 		log.Fatal(err)

@@ -103,20 +103,20 @@ func ScanEverything() {
 }
 
 func (n *Note) parseDate() string {
-	layout := "Mon Jan 2 15:04:05 PM MST 2006"
-	formated_Date := n.Date.Format(layout)
+	//layout := "Mon Jan 2 15:04:05 PM MST 2006"
+	formated_Date := n.Date.Format(string(FullDate))
+
 
 	return formated_Date
 }
 
 func ScanAgenda(contents io.Reader, ch chan<- Note) error {
-	s := bufio.NewScanner(contents)
 	var currentNote Note
 	isCollecting := false
 
-	layout := "Mon Jan 02 03:04:05 PM MST 2006"
-
-	for s.Scan() {
+	layout := string(FullDate)
+	s := bufio.NewScanner(contents)
+for  s.Scan() {
 		line := s.Text()
 		trimmedLine := strings.TrimSpace(line)
 

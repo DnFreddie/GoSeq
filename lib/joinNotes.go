@@ -10,15 +10,21 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"time"
 )
+type DateRange int
 
-type Token string
 
-const (
-	START Token = "START\n"
-	END   Token = "END\n\n"
-	LINE  Token = "\n-----------------------------------\n"
-)
+const(
+	Day = 1
+	Week = 7 
+	Month =  30
+	Year = 365
+	All = 0
+) 
+
+
+
 
 func (n *Note) read() error {
 	f, err := os.Open(n.Path)
@@ -34,10 +40,9 @@ func (n *Note) read() error {
 	return nil
 }
 
-func JoinNotes(entries *[]fs.DirEntry) error {
+func JoinNotes(entries *[]fs.DirEntry,period DateRange) error {
 	agenda := path.Join(AGENDA, ".joined_test.md")
-	notes := GetNotes(entries)
-	sortNotes(notes)
+	notes := GetNotes(entries,period)
 
 	f, err := os.OpenFile(agenda, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -77,12 +82,13 @@ func sortNotes(notes []Note) {
 		return notes[i].Date.Before(notes[j].Date)
 	})
 }
-func GetNotes(e *[]os.DirEntry) []Note {
+
+func GetNotes(e *[]os.DirEntry,dr DateRange) []Note {
 	var noteArray []Note
 	for _, v := range *e {
 		if !v.IsDir() {
 			raw_date := strings.Replace(v.Name(), ".md", "", -1)
-			date, _, err := parseTimeNote(raw_date)
+			date,err := time.Parse(string(FileDate),raw_date)
 			if err != nil {
 				continue
 			}
@@ -95,7 +101,12 @@ func GetNotes(e *[]os.DirEntry) []Note {
 		}
 
 	}
+	sortNotes(noteArray)
 
-	return noteArray
+	if dr == All || int(dr) > len(noteArray)  {
+		return noteArray
+	}
 
+	startIndex := len(noteArray) - int(dr)
+	return noteArray[startIndex:]
 }
