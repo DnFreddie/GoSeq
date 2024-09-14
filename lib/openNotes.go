@@ -64,35 +64,45 @@ func ChoseNote() error {
 		return err
 	}
 
-	var names []string
+	var names []map[string]time.Time
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
-			fmtDate,err := time.Parse(string(FileDate),dateStirng)
+			rawDate,err := time.Parse(string(FileDate),dateStirng)
+
 
 			if err != nil {
 				continue
 			}
 
-			names = append(names, fmtDate.Format(string(FullDate)))
+
+				dateMap := make(map[string]time.Time)
+			fmtTime := rawDate.Format(string(FullDate))
+			dateMap[fmtTime] = rawDate 
+			names = append(names, dateMap)
+
+
 		}
 	}
 
 	choice, err := RunTerm(names)
 	if err != nil {
 		return err
-	}
 
-	date,err := time.Parse(string(FullDate),choice) 
+	}
 	if err != nil {
 		return err
 	}
+	//Path: path.Join(AGENDA, date.Format(string(FileDate)+".md")),
 
-	chosenNote := Note{
-		Path: path.Join(AGENDA, date.Format(string(FileDate)+".md")),
-		Date: date,
-	}
-	err = edit(chosenNote.Path)
+	chosenNote := &Note{}
+for _, v := range choice {
+    *chosenNote = Note{
+        Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
+        Date: v,
+    }
+}
+    err = edit(chosenNote.Path)
 	if err != nil {
 		return nil
 	}

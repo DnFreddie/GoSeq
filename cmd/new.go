@@ -18,7 +18,10 @@ var newCmd = &cobra.Command{
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := lib.DailyNote()
+		if err != nil{
+
 		log.Fatal(err)
+		}
 
 	},
 }
