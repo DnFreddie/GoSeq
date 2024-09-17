@@ -36,7 +36,7 @@ const ( //Corlors
 	Yellow Color = "\033[33m"
 )
 
-func inColors(c Color, s string) {
+func InColors(c Color, s string) {
 	fmt.Print(c, s, Reset)
 }
 
@@ -125,7 +125,7 @@ func displayResults[T any](filteredItems map[string]T, input string) {
 		for key , _ := range filteredItems {
 			fmt.Print(ResetCursor)
 			if index == 0 {
-				inColors(Blue, fmt.Sprintf(">%v \n", key))
+				InColors(Blue, fmt.Sprintf(">%v \n", key))
 			} else {
 				fmt.Printf("%v\n", key)
 			}

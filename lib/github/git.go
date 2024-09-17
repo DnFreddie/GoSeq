@@ -20,6 +20,7 @@ func (gc GitCreds) query() error {
 
 	return nil
 }
+
 func (gc GitCreds) postIssue(repo string, todo Todo) (Todo, error) {
 	fmt.Println(repo)
 	err := gc.query()
@@ -33,3 +34,6 @@ func (gc GitCreds) postIssue(repo string, todo Todo) (Todo, error) {
 
 	return todo, err
 }
+
+
+

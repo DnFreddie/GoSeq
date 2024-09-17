@@ -76,7 +76,7 @@ func ChoseNote() error {
 			}
 
 
-				dateMap := make(map[string]time.Time)
+			dateMap := make(map[string]time.Time)
 			fmtTime := rawDate.Format(string(FullDate))
 			dateMap[fmtTime] = rawDate 
 			names = append(names, dateMap)

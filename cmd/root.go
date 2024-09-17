@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"DnFreddie/GoSeq/config"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,12 +31,12 @@ func Execute() {
 	// err := lib.DailyNote()
 
 	// if err != nil {
-// fmt.Println(err)
+	// fmt.Println(err)
 	// 	os.Exit(1)
 	// }
 	//lib.RunTerm()
 
-///	errror  := lib.ChoseNote()
+	///	errror  := lib.ChoseNote()
 	err := rootCmd.Execute()
 
 	if err != nil {
@@ -52,7 +53,6 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
+	cobra.OnInitialize(config.LoadConfig)
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-

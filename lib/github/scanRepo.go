@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -11,32 +12,36 @@ import (
 	"sync"
 )
 
-
-func WalkFile(p string) {
+func WalkFile(p string) []Todo {
 	info, err := os.Stat(p)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil
 	}
 	if info.IsDir() {
 		fmt.Println(info.Name(), "Probably a submodule")
-		return
+		return nil
 	}
 
 	f, err := os.Open(p)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil
 	}
-	defer f.Close() 
+	defer f.Close()
 
 	ch := make(chan Todo)
 	var wg sync.WaitGroup
+	var TODOS []Todo
 
 	go func() {
 		for todo := range ch {
-			fmt.Println(todo)
+
+			todo.Filename = path.Base(p)
+			TODOS = append(TODOS, todo)
+
 		}
+
 	}()
 
 	lineIndex := 0
@@ -54,9 +59,13 @@ func WalkFile(p string) {
 		}(line, lineIndex)
 	}
 
-
 	wg.Wait()
-	close(ch) 
+	close(ch)
+
+	if len(TODOS) != 0 {
+		return TODOS
+	}
+	return nil
 }
 
 func containsTODO(line string, lineIndex int) *Todo {
@@ -92,15 +101,17 @@ func containsTODO(line string, lineIndex int) *Todo {
 		Line:    lineIndex,
 	}
 }
-
-func WalkProject(p string) {
-
-	//U have to change the dir becouse else it git-ls  will fail
-	err := os.Chdir(p)
+func (pr *Project) WalkProject() error {
+	if pr.Location == "" {
+		log.Fatal("Failed to find the path to the Project")
+	}
+	// Change the directory because else git-ls will fail
+	err := os.Chdir(pr.Location)
 	if err != nil {
 		fmt.Printf("Error changing directory: %v\n", err)
-		return
+		return nil
 	}
+
 	cmd := exec.Command("git", "ls-files")
 	var outb bytes.Buffer
 	var outErr bytes.Buffer
@@ -109,21 +120,41 @@ func WalkProject(p string) {
 
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(outErr)
+		if outErr.Len() > 0 {
+			fmt.Println(outErr.String())
+		} else {
+			fmt.Printf("Error running command: %v\n", err)
+		}
+		return err
 	}
 
 	var wg sync.WaitGroup
+	ch := make(chan map[string][]Todo)
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
 	for scanner := bufio.NewScanner(&outb); scanner.Scan(); {
 		filepath := scanner.Text()
-		abFilepaht := path.Join(p, filepath)
+		abFilepath := path.Join(pr.Location, filepath)
 		wg.Add(1)
 		go func(ab string) {
 			defer wg.Done()
-			WalkFile(abFilepaht)
+			todoArray := WalkFile(ab)
 
-		}(abFilepaht)
-
+			if todoArray != nil && len(todoArray) > 0 {
+				todosMap := make(map[string][]Todo)
+				todosMap[ab] = todoArray
+				ch <- todosMap
+			}
+		}(abFilepath)
 	}
-	wg.Wait()
 
+	for v := range ch {
+		pr.Issues = append(pr.Issues, v)
+	}
+
+	return nil
 }
