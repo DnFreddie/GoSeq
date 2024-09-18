@@ -3,6 +3,7 @@ package github
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"path"
 	"strings"
 	"sync"
+
+	"golang.org/x/sync/semaphore"
 )
 
 func WalkFile(p string) []Todo {
@@ -129,7 +132,9 @@ func (pr *Project) WalkProject() error {
 	}
 
 	var wg sync.WaitGroup
-	ch := make(chan map[string][]Todo)
+	ctx := context.Background()
+	var sem = semaphore.NewWeighted(int64(20))
+	ch := make(chan map[string][]Todo, 10)
 
 	go func() {
 		wg.Wait()
@@ -141,7 +146,9 @@ func (pr *Project) WalkProject() error {
 		abFilepath := path.Join(pr.Location, filepath)
 		wg.Add(1)
 		go func(ab string) {
+			sem.Acquire(ctx, 1)
 			defer wg.Done()
+			defer sem.Release(1)
 			todoArray := WalkFile(ab)
 
 			if todoArray != nil && len(todoArray) > 0 {

@@ -30,8 +30,9 @@ to quickly create a Cobra application.`,
 		log.Fatalf("Some error occured. Err: %s", err)
 	}
 
+		fileP:= "/home/rocky/github.com/DnFreddie/rlbl/"
 		//val := os.Getenv("GITHUB_TOKEN")
-		p,err  := github.ProjectInit("/home/rocky/github.com/DnFreddie/rlbl/")
+		p,err  := github.ProjectInit(fileP)
 
 
 		if err != nil{
@@ -44,6 +45,7 @@ to quickly create a Cobra application.`,
 		}
 		fmt.Println(p.Name)
 		p.Read()
+		github.FindRepos("/home/rocky/github.com/DnFreddie/")
 		//fmt.Println(p.FetchGitHubIssues(val))
 	},
 }
