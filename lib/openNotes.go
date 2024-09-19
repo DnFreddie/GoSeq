@@ -45,16 +45,13 @@ func DailyNote() error {
 		f.Write([]byte("\n" + strings.Repeat("-", len(formattedTime))))
 
 	}
-	err := edit(dailyNote)
+	err := Edit(dailyNote)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
-
-
-
 
 func ChoseNote() error {
 
@@ -68,19 +65,16 @@ func ChoseNote() error {
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
-			rawDate,err := time.Parse(string(FileDate),dateStirng)
-
+			rawDate, err := time.Parse(string(FileDate), dateStirng)
 
 			if err != nil {
 				continue
 			}
 
-
 			dateMap := make(map[string]time.Time)
 			fmtTime := rawDate.Format(string(FullDate))
-			dateMap[fmtTime] = rawDate 
+			dateMap[fmtTime] = rawDate
 			names = append(names, dateMap)
-
 
 		}
 	}
@@ -93,23 +87,21 @@ func ChoseNote() error {
 	if err != nil {
 		return err
 	}
-	//Path: path.Join(AGENDA, date.Format(string(FileDate)+".md")),
-
 	chosenNote := &Note{}
-for _, v := range choice {
-    *chosenNote = Note{
-        Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
-        Date: v,
-    }
-}
-    err = edit(chosenNote.Path)
+	for _, v := range choice {
+		*chosenNote = Note{
+			Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
+			Date: v,
+		}
+	}
+	err = Edit(chosenNote.Path)
 	if err != nil {
 		return nil
 	}
 	return nil
 }
 
-func edit(fPath string) error {
+func Edit(fPath string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		return fmt.Errorf("Failed to foudn $EDITOR")

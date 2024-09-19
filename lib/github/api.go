@@ -8,7 +8,7 @@ import (
 
 func(p *Project) FetchGitHubIssues(token string) (string, error) {
 	
-	url := fmt.Sprintf("https://api.github.com/repos/%v/issues",p.Name)
+	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/issues",p.Owner,p.Name)
 
 	client := &http.Client{}
 

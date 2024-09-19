@@ -16,11 +16,13 @@ import (
 
 type Project struct {
 	Name          string
+	Owner         string
 	DefaultBranch string `json:"default_branch"`
 	Url           string `json:"repo_url"`
 	Issues        []map[string][]Todo
 	Location      string
 }
+
 
 func ProjectInit(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)
@@ -37,9 +39,10 @@ func ProjectInit(localPath string) (*Project, error) {
 	var defaultBranch string
 	var gitURL string
 	var repoName string
+	var rOwner string
 
 	// Attempt to read the HEAD file
-	headFile, err := os.OpenFile(HEAD, os.O_RDONLY, 0)
+	headFile, err := os.Open(HEAD)
 	if err != nil {
 		slog.Warn("Failed to open HEAD file:", "error", err)
 	} else {
@@ -51,7 +54,8 @@ func ProjectInit(localPath string) (*Project, error) {
 		}
 	}
 
-	configFile, err := os.OpenFile(CONFIG, os.O_RDONLY, 0)
+	// Attempt to read the config file
+	configFile, err := os.Open(CONFIG)
 	if err != nil {
 		slog.Warn("Failed to open config file:", "error", err)
 	} else {
@@ -63,16 +67,16 @@ func ProjectInit(localPath string) (*Project, error) {
 		}
 	}
 
-	// Extract the repository name from the URL
 	if gitURL != "" {
 		parts := strings.Split(gitURL, "/")
 		if len(parts) > 0 {
-			rOwner := parts[len(parts)-2]
-			rName := strings.TrimSuffix(parts[len(parts)-1], ".git")
-			repoName = fmt.Sprintf("%v/%v",rOwner,rName)
-
-
+			rOwner = parts[len(parts)-2]
+			repoName = strings.TrimSuffix(parts[len(parts)-1], ".git")
 		}
+	}
+
+	if repoName == "" {
+		return nil, fmt.Errorf("failed to determine repository name from URL: %s", gitURL)
 	}
 
 	return &Project{
@@ -80,6 +84,7 @@ func ProjectInit(localPath string) (*Project, error) {
 		Location:      absoluteP,
 		DefaultBranch: defaultBranch,
 		Url:           gitURL,
+		Owner:         rOwner,
 	}, nil
 }
 

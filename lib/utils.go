@@ -6,3 +6,6 @@ func Map[T any, U any](input []T, fn func(T) U) []U {
 	}
 	return output
 }
+
+
+const ENV_VAR="/tmp/GO_SEQ_PROJECT.txt"

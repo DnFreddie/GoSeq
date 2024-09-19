@@ -70,7 +70,7 @@ func JoinNotes(entries *[]fs.DirEntry,period DateRange) error {
 		v.Contents = nil
 	}
 
-	err = edit(agenda)
+	err = Edit(agenda)
 	if err != nil {
 		log.Fatal(err)
 	}
