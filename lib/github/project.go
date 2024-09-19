@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -22,7 +23,6 @@ type Project struct {
 	Issues        []map[string][]Todo
 	Location      string
 }
-
 
 func ProjectInit(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)
@@ -88,6 +88,41 @@ func ProjectInit(localPath string) (*Project, error) {
 	}, nil
 }
 
+func (p *Project) PrintTodos() {
+	message := fmt.Sprintf("%v/%v\n", p.Owner, p.Name)
+	lib.InColors(lib.Cyan, message)
+	if len(p.Issues) == 0 {
+		lib.InColors(lib.Red, "No TODOS found\n")
+
+	} else {
+
+		fmt.Println("------------------------------")
+		for _, issueMap := range p.Issues {
+			for issueKey, todos := range issueMap {
+
+				printTodos(path.Base(issueKey), todos)
+			}
+		}
+	}
+
+	fmt.Println("------------------------------")
+}
+
+func printTodos(issueKey string, todos []Todo) {
+
+	sort.Slice(todos, func(i, j int) bool {
+		return todos[i].Urgency > todos[j].Urgency
+
+	})
+
+	lib.InColors(lib.Blue, fmt.Sprintf("Location: %s\n", issueKey))
+	for _, todo := range todos {
+		title := fmt.Sprintf("TODO: %v\n", todo.Title)
+		lib.InColors(lib.Green, title)
+		fmt.Printf("Line: %d\nUrgency: %d\n\n", todo.Line, todo.Urgency)
+	}
+
+}
 func extractMatch(reader io.Reader, re *regexp.Regexp) (string, error) {
 	s := bufio.NewScanner(reader)
 	for s.Scan() {
@@ -123,24 +158,4 @@ func makeAbsolute(fPath string) (string, error) {
 	}
 
 	return dest, nil
-}
-
-func (p *Project) Read() {
-
-	if len(p.Issues) == 0 {
-		lib.InColors(lib.Blue, "No TODOS found")
-	}
-	for _, issueMap := range p.Issues {
-		for issueKey, todos := range issueMap {
-
-			printTodos(path.Base(issueKey), todos)
-		}
-	}
-}
-
-func printTodos(issueKey string, todos []Todo) {
-	lib.InColors(lib.Blue, fmt.Sprintf("Issue: %s\n", issueKey))
-	for _, todo := range todos {
-		fmt.Printf("Line:%d TODO:%s\n", todo.Line, todo.Title)
-	}
 }

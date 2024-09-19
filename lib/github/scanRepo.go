@@ -15,10 +15,78 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+
+
+func (pr *Project) WalkProject() error {
+	if pr.Location == "" {
+		log.Fatal("Failed to find the path to the Project")
+	}
+	// Change the directory because else git-ls will fail
+	err := os.Chdir(pr.Location)
+	if err != nil {
+		fmt.Printf("Error changing directory: %v\n", err)
+		return nil
+	}
+
+	cmd := exec.Command("git", "ls-files")
+	var outb bytes.Buffer
+	var outErr bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &outErr
+
+	err = cmd.Run()
+	if err != nil {
+		if outErr.Len() > 0 {
+			fmt.Println(outErr.String())
+		} else {
+			fmt.Printf("Error running command: %v\n", err)
+		}
+		return err
+	}
+
+	var wg sync.WaitGroup
+	ctx := context.Background()
+	var sem = semaphore.NewWeighted(int64(20))
+	ch := make(chan map[string][]Todo, 10)
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for scanner := bufio.NewScanner(&outb); scanner.Scan(); {
+		filepath := scanner.Text()
+		abFilepath := path.Join(pr.Location, filepath)
+		wg.Add(1)
+		go func(ab string) {
+			sem.Acquire(ctx, 1)
+			defer wg.Done()
+			defer sem.Release(1)
+			todoArray := WalkFile(ab)
+
+			if todoArray != nil && len(todoArray) > 0 {
+				todosMap := make(map[string][]Todo)
+				todosMap[ab] = todoArray
+				ch <- todosMap
+			}
+		}(abFilepath)
+	}
+
+	for v := range ch {
+		pr.Issues = append(pr.Issues, v)
+	}
+
+
+
+	return nil
+}
+
+
+
 func WalkFile(p string) []Todo {
 	info, err := os.Stat(p)
 	if err != nil {
-		fmt.Println(err)
+	//fmt.Println(err)
 		return nil
 	}
 	if info.IsDir() {
@@ -103,65 +171,4 @@ func containsTODO(line string, lineIndex int) *Todo {
 		Title:   strings.TrimSpace(title),
 		Line:    lineIndex,
 	}
-}
-func (pr *Project) WalkProject() error {
-	if pr.Location == "" {
-		log.Fatal("Failed to find the path to the Project")
-	}
-	// Change the directory because else git-ls will fail
-	err := os.Chdir(pr.Location)
-	if err != nil {
-		fmt.Printf("Error changing directory: %v\n", err)
-		return nil
-	}
-
-	cmd := exec.Command("git", "ls-files")
-	var outb bytes.Buffer
-	var outErr bytes.Buffer
-	cmd.Stdout = &outb
-	cmd.Stderr = &outErr
-
-	err = cmd.Run()
-	if err != nil {
-		if outErr.Len() > 0 {
-			fmt.Println(outErr.String())
-		} else {
-			fmt.Printf("Error running command: %v\n", err)
-		}
-		return err
-	}
-
-	var wg sync.WaitGroup
-	ctx := context.Background()
-	var sem = semaphore.NewWeighted(int64(20))
-	ch := make(chan map[string][]Todo, 10)
-
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	for scanner := bufio.NewScanner(&outb); scanner.Scan(); {
-		filepath := scanner.Text()
-		abFilepath := path.Join(pr.Location, filepath)
-		wg.Add(1)
-		go func(ab string) {
-			sem.Acquire(ctx, 1)
-			defer wg.Done()
-			defer sem.Release(1)
-			todoArray := WalkFile(ab)
-
-			if todoArray != nil && len(todoArray) > 0 {
-				todosMap := make(map[string][]Todo)
-				todosMap[ab] = todoArray
-				ch <- todosMap
-			}
-		}(abFilepath)
-	}
-
-	for v := range ch {
-		pr.Issues = append(pr.Issues, v)
-	}
-
-	return nil
 }

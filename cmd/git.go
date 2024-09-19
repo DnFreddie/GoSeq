@@ -20,13 +20,8 @@ var projectPath string
 // gitCmd represents the git command
 var gitCmd = &cobra.Command{
 	Use:   "git",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Open a note for a specyfied repo",
+	Long: `Opens a note for the project if paht not specyfied it finds the recent one`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//github.WalkProject("/home/rocky/github.com/DnFreddie/rlbl")
@@ -51,7 +46,7 @@ to quickly create a Cobra application.`,
 			if err != nil {
 				log.Fatalf("No recent Projects found: %v", err)
 			}
-			lib.Edit(string(p))
+			lib.Edit(string(p)+".md")
 
 		}
 
@@ -66,7 +61,9 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	gitCmd.Flags().StringVarP(&projectPath, "path", "p","", "A path to your project/dir where u store them")
+
+	gitCmd.PersistentFlags().StringVar(&projectPath, "path", "", "A path to your project/dir where you store them")
+
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

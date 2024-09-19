@@ -30,7 +30,8 @@ func LoadConfig() {
 	err = viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Print("Configuration file not found. Please enter your GitHub token: ")
+
+			fmt.Printf("Configuration file not found.\nOpen https://github.com/settings/tokens\nPlease enter your GitHub token:\n")
 			reader := bufio.NewReader(os.Stdin)
 			token, err := reader.ReadString('\n')
 			if err != nil {

@@ -8,9 +8,10 @@ type Todo struct {
 	ID            *string
 	Filename      string
 	Line          int
-	Title         string
-	Body          []string
 	BodySeparator string
+	Title string `json:"title"`
+	Body  string `json:"body"`
+
 }
 type GitCreds struct {
 	Token string

@@ -3,14 +3,14 @@ package github
 import (
 	"DnFreddie/GoSeq/lib"
 	"context"
+	"errors"
 	"fmt"
+	"golang.org/x/sync/semaphore"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
-
-	"golang.org/x/sync/semaphore"
 )
 
 func ListRepos(pt string) ([]Project, error) {
@@ -69,56 +69,74 @@ func ListRepos(pt string) ([]Project, error) {
 
 func ChoseProject(pr *[]Project) *Project {
 	var options []map[string]*Project
-	var p  *Project
+	var p *Project
 	for _, v := range *pr {
 		newOption := make(map[string]*Project)
-		newOption[fmt.Sprintf("%v/%v",v.Owner,v.Name)] = &v
+		newOption[fmt.Sprintf("%v/%v", v.Owner, v.Name)] = &v
 		options = append(options, newOption)
 	}
 	choice, err := lib.RunTerm(options)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, v := range choice{
+	for _, v := range choice {
 		p = v
-
 
 	}
 	return p
 }
+func (p *Project) printProperites() string {
+
+	properties := fmt.Sprintf(`------------------------------
+Repo: %v/%v
+Branch: %v
+Url: %v
+------------------------------`, p.Owner, p.Name, p.DefaultBranch, p.Url)
+	return properties
+}
 
 func (p *Project) EditProject() {
-	pDir := path.Join(lib.AGENDA, "projects",p.Owner)
+	pDir := path.Join(lib.AGENDA, "projects", p.Owner)
 	err := os.MkdirAll(pDir, 0755)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	project := path.Join(pDir, p.Name)
+	project := path.Join(pDir, p.Name+".md")
+
+	if _, err := os.Stat(project); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(project)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		props := p.printProperites()
+		if _, err = f.Write([]byte(props)); err != nil {
+			log.Fatal(err)
+		}
+
+	}
+
 	lib.Edit(project)
 
 }
 
 func PickProject(pPath string) string {
 
-	pr, err := ListRepos(pPath)
-	for _, v := range pr {
-		fmt.Println("------------------------------")
-		fmt.Println(v.Location)
-		fmt.Println(v.DefaultBranch)
-		fmt.Println(v.Name)
-		fmt.Println(v.Owner)
-		fmt.Println(v.Url)
-		fmt.Println("------------------------------")
-		
-	}
+	prArray,err := ListRepos(pPath)
+	var p *Project
 	if err != nil {
 
 		log.Fatal(err)
 	}
 
-	gp := ChoseProject(&pr)
-	gp.EditProject()
-	joinded := path.Join(gp.Owner,gp.Name)
-	return  joinded
+	if len(prArray) == 1{
+		p = &prArray[0]
+		
+	}else{
+		 p = ChoseProject(&prArray)
+	}
+	p.EditProject()
+	joinded := path.Join(p.Owner, p.Name)
+	return joinded
 }
