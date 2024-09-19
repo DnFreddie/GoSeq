@@ -13,6 +13,7 @@ import (
 	"path"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var projectPath string
@@ -21,15 +22,16 @@ var projectPath string
 var gitCmd = &cobra.Command{
 	Use:   "git",
 	Short: "Open a note for a specyfied repo",
-	Long: `Opens a note for the project if paht not specyfied it finds the recent one`,
+	Long:  `Opens a note for the project if paht not specyfied it finds the recent one`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//github.WalkProject("/home/rocky/github.com/DnFreddie/rlbl")
 
+		home := viper.GetString("HOME")
 		if projectPath != "" {
 			pAth := github.PickProject(projectPath)
 
-			location := path.Join(lib.AGENDA, "projects", pAth)
+			location := path.Join(home, lib.PROJECTS, pAth)
 			err := os.WriteFile(lib.ENV_VAR, []byte(location), 0644)
 			if err != nil {
 				slog.Warn("Failed to read to the TMP file", "err", err)
@@ -46,7 +48,7 @@ var gitCmd = &cobra.Command{
 			if err != nil {
 				log.Fatalf("No recent Projects found: %v", err)
 			}
-			lib.Edit(string(p)+".md")
+			lib.Edit(string(p) + ".md")
 
 		}
 
@@ -63,7 +65,6 @@ func init() {
 	// and all subcommands, e.g.:
 
 	gitCmd.PersistentFlags().StringVar(&projectPath, "path", "", "A path to your project/dir where you store them")
-
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

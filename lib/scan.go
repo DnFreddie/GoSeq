@@ -11,10 +11,16 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
-const AGENDA = "/home/rocky/Documents/Agenda/"
-const JOINED = "/home/rocky/Documents/Agenda/.joined_test.md"
+const (
+AGENDA = "/Documents/Agenda/"
+JOINED = "/tmp/.go_seq_joined.md"
+PROJECTS = "/Documents/Agenda/projects"
+)
+
 
 type Note struct {
 	Date     time.Time
@@ -23,13 +29,14 @@ type Note struct {
 }
 
 func (n *Note) writeNote() error {
+	home := viper.GetString("HOME")
 	if n.Path == "" && !n.Date.IsZero() {
 
 		n.Path = n.Date.Format("2006-01-02.md")
 
 	}
 
-	absPath := path.Join(AGENDA, n.Path)
+	absPath := path.Join(home,AGENDA, n.Path)
 	if _, err := os.Stat(absPath); errors.Is(err, os.ErrNotExist) {
 
 		return err

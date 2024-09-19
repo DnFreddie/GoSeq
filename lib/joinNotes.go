@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 type DateRange int
 
@@ -41,10 +43,10 @@ func (n *Note) read() error {
 }
 
 func JoinNotes(entries *[]fs.DirEntry,period DateRange) error {
-	agenda := path.Join(AGENDA, ".joined_test.md")
+	join := path.Join(JOINED)
 	notes := GetNotes(entries,period)
 
-	f, err := os.OpenFile(agenda, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(join, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func JoinNotes(entries *[]fs.DirEntry,period DateRange) error {
 		v.Contents = nil
 	}
 
-	err = Edit(agenda)
+	err = Edit(join)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,8 +94,10 @@ func GetNotes(e *[]os.DirEntry,dr DateRange) []Note {
 			if err != nil {
 				continue
 			}
+			home := viper.GetString("HOME")
 			note := Note{
-				Path: path.Join(AGENDA, v.Name()),
+
+				Path: path.Join(home,AGENDA, v.Name()),
 				Date: date,
 			}
 			noteArray = append(noteArray, note)

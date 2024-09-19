@@ -9,6 +9,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 func checkAgenda() string {
@@ -55,7 +57,8 @@ func DailyNote() error {
 
 func ChoseNote() error {
 
-	entries, err := os.ReadDir(AGENDA)
+	home := viper.GetString("HOME")
+	entries, err := os.ReadDir(path.Join(home,AGENDA))
 
 	if err != nil {
 		return err
@@ -90,7 +93,7 @@ func ChoseNote() error {
 	chosenNote := &Note{}
 	for _, v := range choice {
 		*chosenNote = Note{
-			Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
+			Path: path.Join(home,AGENDA, v.Format(string(FileDate)+".md")),
 			Date: v,
 		}
 	}

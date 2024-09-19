@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // joinCmd represents the join command
@@ -21,8 +23,10 @@ var joinCmd = &cobra.Command{
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		p:= parseDateRange(period)
-		dirs, _ := os.ReadDir(lib.AGENDA)
+		home := viper.GetString("HOME")
+		p := parseDateRange(period)
+
+		dirs, _ := os.ReadDir(path.Join(home, lib.AGENDA))
 		err := lib.JoinNotes(&dirs, p)
 		if err != nil {
 			log.Fatal(err)

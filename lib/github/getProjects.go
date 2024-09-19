@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/sync/semaphore"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
+
+	"github.com/spf13/viper"
+	"golang.org/x/sync/semaphore"
 )
 
 func ListRepos(pt string) ([]Project, error) {
@@ -96,7 +98,8 @@ Url: %v
 }
 
 func (p *Project) EditProject() {
-	pDir := path.Join(lib.AGENDA, "projects", p.Owner)
+	home :=viper.GetString("HOME")
+	pDir := path.Join(home, lib.PROJECTS, p.Owner)
 	err := os.MkdirAll(pDir, 0755)
 
 	if err != nil {
@@ -123,18 +126,18 @@ func (p *Project) EditProject() {
 
 func PickProject(pPath string) string {
 
-	prArray,err := ListRepos(pPath)
+	prArray, err := ListRepos(pPath)
 	var p *Project
 	if err != nil {
 
 		log.Fatal(err)
 	}
 
-	if len(prArray) == 1{
+	if len(prArray) == 1 {
 		p = &prArray[0]
-		
-	}else{
-		 p = ChoseProject(&prArray)
+
+	} else {
+		p = ChoseProject(&prArray)
 	}
 	p.EditProject()
 	joinded := path.Join(p.Owner, p.Name)
