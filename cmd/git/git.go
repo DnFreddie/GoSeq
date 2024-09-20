@@ -21,7 +21,8 @@ var projectPath string
 var GitCmd = &cobra.Command{
 	Use:   "git",
 	Short: "Open a note for a specyfied repo",
-	Long:  `Opens a note for the project if paht not specyfied it finds the recent one`,
+	Long:  `Opens a note for the project if paths  not specyfied it finds the recent one
+And the for the saved.You can see what Projects did u saved via the git list command`,
 	Run: func(cmd *cobra.Command, args []string) {
 		//github.WalkProject("/home/rocky/github.com/DnFreddie/rlbl")
 		home := viper.GetString("HOME")

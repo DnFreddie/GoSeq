@@ -53,6 +53,14 @@ goseq git
 ```bash
 goseq git --path <Repo/dir containing repos>
 ```
+`git --path` adds the project to the file called  `$HOME/Documents/Agenda/projects/.PROJECTS_META.json`
+
+**List Projects**
+- To list porject that were added use 
+
+```bash 
+goseq git list
+```
 
 ---
 

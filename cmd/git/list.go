@@ -13,13 +13,9 @@ import (
 // testCmd represents the test command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "List added Projects and chose one to edit",
+	Long: `It lists the projects that was previously added and lets you chose one.
+The paths are located in $HOME/Documents/Agenda/projects/.PROJECTS_META.json `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := github.ReadRecent(true);err!=nil{
 			log.Fatal(err)
