@@ -1,6 +1,7 @@
 package github
 
 import (
+	"DnFreddie/goseq/lib"
 	"bufio"
 	"bytes"
 	"context"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 	"sync"
 
 	"golang.org/x/sync/semaphore"
@@ -47,7 +47,7 @@ func (pr *Project) WalkProject() error {
 	var wg sync.WaitGroup
 	ctx := context.Background()
 	var sem = semaphore.NewWeighted(int64(20))
-	ch := make(chan map[string][]Todo, 10)
+	ch := make(chan map[string][]lib.Todo, 10)
 
 	go func() {
 		wg.Wait()
@@ -65,7 +65,7 @@ func (pr *Project) WalkProject() error {
 			todoArray := WalkFile(ab)
 
 			if todoArray != nil && len(todoArray) > 0 {
-				todosMap := make(map[string][]Todo)
+				todosMap := make(map[string][]lib.Todo)
 				todosMap[ab] = todoArray
 				ch <- todosMap
 			}
@@ -83,7 +83,7 @@ func (pr *Project) WalkProject() error {
 
 
 
-func WalkFile(p string) []Todo {
+func WalkFile(p string) []lib.Todo {
 	info, err := os.Stat(p)
 	if err != nil {
 	//fmt.Println(err)
@@ -101,9 +101,9 @@ func WalkFile(p string) []Todo {
 	}
 	defer f.Close()
 
-	ch := make(chan Todo)
+	ch := make(chan lib.Todo)
 	var wg sync.WaitGroup
-	var TODOS []Todo
+	var TODOS []lib.Todo
 
 	go func() {
 		for todo := range ch {
@@ -121,9 +121,9 @@ func WalkFile(p string) []Todo {
 		lineIndex++
 
 		wg.Add(1)
-		go func(s string, index int) {
+		go func(line string, index int) {
 			defer wg.Done()
-			todo := containsTODO(s, index)
+			todo := lib.ContainsPattern(line,index,lib.TODO)
 			if todo != nil {
 				ch <- *todo
 			}
@@ -139,36 +139,3 @@ func WalkFile(p string) []Todo {
 	return nil
 }
 
-func containsTODO(line string, lineIndex int) *Todo {
-	// Find the index of "TODO"
-	index := strings.Index(line, "TODO")
-	var titleIndex int
-
-	var pririoryty int
-	if index == -1 {
-		return nil
-	}
-
-	for i := index + 4; i < len(line); i++ {
-		if line[i] == '!' {
-			titleIndex = i + 1
-			break
-
-		} else if line[i] != 'O' {
-			titleIndex = i
-			break
-
-		}
-		pririoryty += 1
-	}
-	title := line[titleIndex:]
-
-	if title == "" {
-		return nil
-	}
-	return &Todo{
-		Urgency: pririoryty,
-		Title:   strings.TrimSpace(title),
-		Line:    lineIndex,
-	}
-}

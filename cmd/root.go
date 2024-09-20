@@ -7,6 +7,7 @@ import (
 	"DnFreddie/goseq/cmd/git"
 	"DnFreddie/goseq/cmd/notes"
 	"DnFreddie/goseq/config"
+	"DnFreddie/goseq/lib"
 	"log"
 	"os"
 
@@ -38,6 +39,7 @@ func Execute() {
 	//lib.RunTerm()
 
 	///	errror  := lib.ChoseNote()
+	lib.TesContainsPattern()
 	err := RootCmd.Execute()
 
 	if err != nil {

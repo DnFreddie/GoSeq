@@ -1,6 +1,7 @@
 package github
 
 import (
+	"DnFreddie/goseq/lib"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -60,13 +61,13 @@ func (p *Project) FetchGitHubIssues(token string) ([]gitIssue, error) {
 	return issues, nil
 }
 
-func (t *Todo) createGitHubIssue(token string, owner string, repo string) error {
+func  createGitHubIssue [T any]( todo T,  token string, owner string, repo string) error {
 	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
 
 	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/issues", owner, repo)
-	data, err := json.Marshal(t)
+	data, err := json.Marshal(todo)
 	if err != nil {
 		return fmt.Errorf("error marshaling JSON: %v", err)
 	}
@@ -101,9 +102,9 @@ func (p *Project) SearchIssueByTitle(token string, existIssue *[]gitIssue) {
 
 				if isNewIssue {
 					wg.Add(1)
-					go func(todo Todo) {
+					go func(todo lib.Todo) {
 						defer wg.Done()
-						err := todo.createGitHubIssue(token, p.Owner, p.Name)
+						err := createGitHubIssue(todo,token, p.Owner, p.Name)
 						mu.Lock()
 						defer mu.Unlock()
 						if err != nil {

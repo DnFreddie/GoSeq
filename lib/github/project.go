@@ -23,7 +23,7 @@ type Project struct {
 	Owner         string `json:"owner"`
 	DefaultBranch string `json:"default_branch"`
 	Url           string `json:"repo_url"`
-	Issues        []map[string][]Todo
+	Issues        []map[string][]lib.Todo
 	Location      string `json:"location"`
 }
 
@@ -111,7 +111,7 @@ func (p *Project) PrintTodos() {
 	fmt.Println("------------------------------")
 }
 
-func printTodos(issueKey string, todos []Todo) {
+func printTodos(issueKey string, todos []lib.Todo) {
 
 	sort.Slice(todos, func(i, j int) bool {
 		return todos[i].Urgency > todos[j].Urgency
