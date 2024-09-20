@@ -4,7 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/lib/github"
 	"context"
 	"fmt"
 	"log"
@@ -14,13 +13,13 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-var scanCmd = &cobra.Command{
+var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Scans todos from the given path",
-	Long: `Findes the project and prints all the todos founded inside the project/s `,
+	Long:  `Findes the project and prints all the todos founded inside the project/s `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if projectPath != "" {
-			prArray, err := github.ListRepos(projectPath)
+		if ProjectPath != "" {
+			prArray, err := ListProjects(ProjectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -31,9 +30,10 @@ var scanCmd = &cobra.Command{
 
 			for _, v := range prArray {
 				wg.Add(1)
-				go func(repo github.Project) {
+				go func(repo Project) {
 					sem.Acquire(ctx, 1)
-					defer wg.Done();sem.Release(1)
+					defer wg.Done()
+					sem.Release(1)
 					if err := repo.WalkProject(); err != nil {
 						fmt.Printf("Failed to scan %v, %v\n", repo.Name, err)
 					}
@@ -49,7 +49,7 @@ var scanCmd = &cobra.Command{
 }
 
 func init() {
-	GitCmd.AddCommand(scanCmd)
+	GitCmd.AddCommand(ScanCmd)
 
 	// Here you will define your flags and configuration settings.
 	// scanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -61,4 +61,3 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 }
-

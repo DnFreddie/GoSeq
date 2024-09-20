@@ -4,27 +4,26 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/lib/github"
 	"log"
 
 	"github.com/spf13/cobra"
 )
 
 // testCmd represents the test command
-var listCmd = &cobra.Command{
+var ListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List added Projects and chose one to edit",
 	Long: `It lists the projects that was previously added and lets you chose one.
 The paths are located in $HOME/Documents/Agenda/projects/.PROJECTS_META.json `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := github.ReadRecent(true);err!=nil{
+		if err := ReadRecent(true); err != nil {
 			log.Fatal(err)
 		}
 	},
 }
 
 func init() {
-	GitCmd.AddCommand(listCmd)
+	GitCmd.AddCommand(ListCmd)
 
 	// Here you will define your flags and configuration settings.
 

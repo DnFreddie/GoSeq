@@ -4,7 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"DnFreddie/goseq/lib"
 	"log"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ var ListCmd = &cobra.Command{
 	List all notes in agenda and lets you chose the one u want then it opens it and applay the changes 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := lib.ChoseNote()
+		err := ChoseNote()
 		if err != nil{
 
 		log.Fatal(err)

@@ -52,28 +52,37 @@ func ContainsPattern(line string, lineIndex int, patterns Pattern) *Todo {
 
 func processMatch(line string, lineIndex int, index int, keyword string, pattern Pattern) *Todo {
 	var titleIndex int
-	var priority int
+	var urgency int
 
-	for i := index + len(keyword); i < len(line); i++ {
-		if line[i] == '!' {
+	lastChar := keyword[len(keyword)-1]
+
+	startIndex := index + len(keyword)
+
+	for i := startIndex; i < len(line); i++ {
+		if line[i] == lastChar {
+			urgency += 1
+		} else if line[i] == '!' {
 			titleIndex = i + 1
 			break
 		} else if line[i] != ' ' {
 			titleIndex = i
 			break
 		}
-		priority += 1
 	}
 
-	title := line[titleIndex:]
+	if titleIndex == 0 {
+		titleIndex = startIndex
+	}
+
+	title := strings.TrimSpace(line[titleIndex:])
 	if title == "" {
 		return nil
 	}
 
 	return &Todo{
 		Keyword: keyword,
-		Urgency: priority,
-		Title:   strings.TrimSpace(title),
+		Urgency: urgency,
+		Title:   title,
 		Line:    lineIndex,
 		Pattern: pattern,
 	}

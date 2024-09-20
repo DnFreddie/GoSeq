@@ -4,12 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"DnFreddie/goseq/lib"
-	"fmt"
 	"log"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,15 +19,15 @@ var JoinCmd = &cobra.Command{
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		home := viper.GetString("HOME")
+		AGENDA := viper.GetString("AGENDA")
 		p := parseDateRange(period)
 
-		dirs, _ := os.ReadDir(path.Join(home, lib.AGENDA))
-		err := lib.JoinNotes(&dirs, p)
+		dirs, _ := os.ReadDir(AGENDA)
+		err := JoinNotes(&dirs, p)
 		if err != nil {
 			log.Fatal(err)
 		}
-		lib.ScanEverything()
+		ScanEverything()
 	},
 }
 
@@ -46,21 +42,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// joinCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-func parseDateRange(input string) lib.DateRange {
-	switch strings.ToLower(input) {
-	case "day":
-		return lib.Day
-	case "week":
-		return lib.Week
-	case "month":
-		return lib.Month
-	case "year":
-		return lib.Year
-	case "all":
-		return lib.All
-	default:
-		fmt.Printf("Invalid date range: %s. Defaulting to 'all'.\n", input)
-		return lib.Week
-	}
 }

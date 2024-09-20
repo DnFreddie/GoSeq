@@ -4,7 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/lib/github"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -12,10 +11,10 @@ import (
 )
 
 // postCmd represents the post command
-var postCmd = &cobra.Command{
+var PostCmd = &cobra.Command{
 	Use:   "post",
 	Short: "Post new issues to the github",
-	Long: `It scans the given direcories for githubissues  and post the ones that don't exist to the github`,
+	Long:  `It scans the given direcories for githubissues  and post the ones that don't exist to the github`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		tokenValue := viper.Get("token")
@@ -24,8 +23,8 @@ var postCmd = &cobra.Command{
 		if !ok || token == "" {
 			log.Fatal("Failed to found the Github Api token")
 		}
-		if projectPath != "" {
-			p, err := github.ProjectInit(projectPath)
+		if ProjectPath != "" {
+			p, err := ProjectInit(ProjectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -46,7 +45,7 @@ var postCmd = &cobra.Command{
 }
 
 func init() {
-	GitCmd.AddCommand(postCmd)
+	GitCmd.AddCommand(PostCmd)
 
 	// Here you will define your flags and configuration settings.
 

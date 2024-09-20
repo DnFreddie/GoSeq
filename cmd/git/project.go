@@ -1,21 +1,28 @@
-package github
+package git
 
 import (
 	"DnFreddie/goseq/lib"
 	"bufio"
+	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
+	"golang.org/x/sync/semaphore"
 )
 
 type Project struct {
@@ -103,7 +110,7 @@ func (p *Project) PrintTodos() {
 		for _, issueMap := range p.Issues {
 			for issueKey, todos := range issueMap {
 
-				printTodos(path.Base(issueKey), todos)
+				printSortedTodos(path.Base(issueKey), todos)
 			}
 		}
 	}
@@ -111,7 +118,7 @@ func (p *Project) PrintTodos() {
 	fmt.Println("------------------------------")
 }
 
-func printTodos(issueKey string, todos []lib.Todo) {
+func printSortedTodos(issueKey string, todos []lib.Todo) {
 
 	sort.Slice(todos, func(i, j int) bool {
 		return todos[i].Urgency > todos[j].Urgency
@@ -164,10 +171,10 @@ func makeAbsolute(fPath string) (string, error) {
 }
 
 func (p *Project) saveProject() error {
-	home := viper.GetString("HOME")
+	PROJECTS := viper.GetString("PROJECTS")
 	var projects []Project
 
-	metaPath := path.Join(home, lib.PROJECTS_META)
+	metaPath := path.Join(PROJECTS,PROJECTS_META)
 
 	if _, err := os.Stat(metaPath); err == nil {
 		f, err := os.Open(metaPath)
@@ -233,47 +240,161 @@ func projectExists(projects []Project, newProject *Project) bool {
 	return false
 }
 
-func ReadRecent(list bool) error {
-	home := viper.GetString("HOME")
+func (p *Project) EditProject() {
+	PROJECTS := viper.GetString("PROJECTS")
+	pDir := path.Join(PROJECTS, p.Owner)
+	err := os.MkdirAll(pDir, 0755)
 
-	if !list {
-		f, err := os.Open(lib.ENV_VAR)
+	if err != nil {
+		log.Fatal(err)
+	}
+	project := path.Join(pDir, p.Name+".md")
+
+	if _, err := os.Stat(project); errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(project)
 		if err != nil {
-			log.Println("No recent Projects found, listing recent projects instead")
-			return ReadRecent(true)
-		}
-		defer f.Close()
-
-		p, err := io.ReadAll(f)
-		if err != nil {
-			log.Println("Failed to read recent project, listing recent projects instead")
-			return ReadRecent(true)
+			log.Fatal(err)
 		}
 
-		lib.Edit(string(p) + ".md")
+		props := p.printProperites()
+		if _, err = f.Write([]byte(props)); err != nil {
+			log.Fatal(err)
+		}
+
+	}
+	if err := p.saveProject(); err != nil {
+		fmt.Errorf("Failed to save the project u have to rerwite to be able to open the noptes err:%v\n", err)
+		time.Sleep(3 * time.Second)
+	}
+
+	lib.Edit(project)
+
+}
+
+func (p *Project) printProperites() string {
+
+	properties := fmt.Sprintf(`------------------------------
+Repo: %v/%v
+Branch: %v
+Url: %v
+------------------------------`, p.Owner, p.Name, p.DefaultBranch, p.Url)
+	return properties
+}
+
+func (pr *Project) WalkProject() error {
+	if pr.Location == "" {
+		log.Fatal("Failed to find the path to the Project")
+	}
+	// Change the directory because else git-ls will fail
+	err := os.Chdir(pr.Location)
+	if err != nil {
+		fmt.Printf("Error changing directory: %v\n", err)
 		return nil
 	}
 
-	f, err := os.Open(path.Join(home, lib.PROJECTS_META))
+	cmd := exec.Command("git", "ls-files")
+	var outb bytes.Buffer
+	var outErr bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &outErr
 
+	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("The meta file is empty add the project to fix this\n")
-	}
-	var projecArray []Project
-
-	contents, err := io.ReadAll(f)
-	if err != nil {
+		if outErr.Len() > 0 {
+			fmt.Println(outErr.String())
+		} else {
+			fmt.Printf("Error running command: %v\n", err)
+		}
 		return err
 	}
-	err = json.Unmarshal(contents, &projecArray)
-	if err != nil {
-		return err
+
+	var wg sync.WaitGroup
+	ctx := context.Background()
+	var sem = semaphore.NewWeighted(int64(20))
+	ch := make(chan map[string][]lib.Todo, 10)
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for scanner := bufio.NewScanner(&outb); scanner.Scan(); {
+		filepath := scanner.Text()
+		abFilepath := path.Join(pr.Location, filepath)
+		wg.Add(1)
+		go func(ab string) {
+			sem.Acquire(ctx, 1)
+			defer wg.Done()
+			defer sem.Release(1)
+			todoArray := walkFile(ab)
+
+			if todoArray != nil && len(todoArray) > 0 {
+				todosMap := make(map[string][]lib.Todo)
+				todosMap[ab] = todoArray
+				ch <- todosMap
+			}
+		}(abFilepath)
 	}
-	if len(projecArray) == 0 {
-		return fmt.Errorf("The meta file is empty add the project to fix this\n")
+
+	for v := range ch {
+		pr.Issues = append(pr.Issues, v)
 	}
-	pr := ChoseProject(&projecArray)
-	pr.EditProject()
+
 	return nil
+}
 
+func walkFile(p string) []lib.Todo {
+	info, err := os.Stat(p)
+	if err != nil {
+		//fmt.Println(err)
+		return nil
+	}
+	if info.IsDir() {
+		fmt.Println(info.Name(), "Probably a submodule")
+		return nil
+	}
+
+	f, err := os.Open(p)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer f.Close()
+
+	ch := make(chan lib.Todo)
+	var wg sync.WaitGroup
+	var TODOS []lib.Todo
+
+	go func() {
+		for todo := range ch {
+
+			todo.Filename = path.Base(p)
+			TODOS = append(TODOS, todo)
+
+		}
+
+	}()
+
+	lineIndex := 0
+	for s := bufio.NewScanner(f); s.Scan(); {
+		line := s.Text()
+		lineIndex++
+
+		wg.Add(1)
+		go func(line string, index int) {
+			defer wg.Done()
+			todo := lib.ContainsPattern(line, index, lib.TODO)
+			if todo != nil {
+				ch <- *todo
+			}
+		}(line, lineIndex)
+	}
+
+	wg.Wait()
+	close(ch)
+
+	if len(TODOS) != 0 {
+		return TODOS
+	}
+	return nil
 }

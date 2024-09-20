@@ -7,9 +7,9 @@ import (
 	"DnFreddie/goseq/cmd/git"
 	"DnFreddie/goseq/cmd/notes"
 	"DnFreddie/goseq/config"
-	"DnFreddie/goseq/lib"
 	"log"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,7 +39,6 @@ func Execute() {
 	//lib.RunTerm()
 
 	///	errror  := lib.ChoseNote()
-	lib.TesContainsPattern()
 	err := RootCmd.Execute()
 
 	if err != nil {
@@ -64,6 +63,9 @@ func init() {
 		log.Fatalf("Failed to get home directory: %v", err)
 	}
 	viper.Set("HOME", homeDir)
+	agenda := path.Join(homeDir,"/Documents/Agenda/")
+	viper.Set("AGENDA",agenda)
+	viper.Set("PROJECTS",agenda+"/projects")
 	addSubcommandsPallet()
 }
 
