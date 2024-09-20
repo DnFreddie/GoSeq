@@ -127,7 +127,7 @@ To build GoSeq:
 ```bash
 export GOPATH=$PWD
 go get .
-go build . -o goseq
+go build .
 ```
 
 

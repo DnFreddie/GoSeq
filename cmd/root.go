@@ -4,9 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"DnFreddie/GoSeq/cmd/git"
-	"DnFreddie/GoSeq/cmd/notes"
-	"DnFreddie/GoSeq/config"
+	"DnFreddie/goseq/cmd/git"
+	"DnFreddie/goseq/cmd/notes"
+	"DnFreddie/goseq/config"
 	"log"
 	"os"
 
@@ -16,8 +16,8 @@ import (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "GoSeq",
-	Short: "GoSeq diary for the devleoper and their projectes all in one binary",
+	Use:   "goseq",
+	Short: "Goseq diary for the devleoper and their projectes all in one binary",
 	Long: `Goseq provides a way to connect your daily notes with your project notes.
 It also allows you to seamlessly upload GitHub issues written in the code.
 All in one binary.`,
@@ -50,7 +50,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.GoSeq.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goseq.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -65,14 +65,9 @@ func init() {
 	addSubcommandsPallet()
 }
 
-
 func addSubcommandsPallet() {
 	RootCmd.AddCommand(git.GitCmd)
 	RootCmd.AddCommand(notes.JoinCmd)
 	RootCmd.AddCommand(notes.NewCmd)
 	RootCmd.AddCommand(notes.ListCmd)
 }
-
-
-
-

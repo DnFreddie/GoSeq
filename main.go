@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
 package main
 
-import "DnFreddie/GoSeq/cmd"
+import "DnFreddie/goseq/cmd"
 
 func main() {
 	cmd.Execute()

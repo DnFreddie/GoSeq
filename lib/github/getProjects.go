@@ -1,7 +1,7 @@
 package github
 
 import (
-	"DnFreddie/GoSeq/lib"
+	"DnFreddie/goseq/lib"
 	"context"
 	"errors"
 	"fmt"

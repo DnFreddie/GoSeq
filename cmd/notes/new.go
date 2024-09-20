@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"DnFreddie/GoSeq/lib"
+	"DnFreddie/goseq/lib"
 	"log"
 
 	"github.com/spf13/cobra"
