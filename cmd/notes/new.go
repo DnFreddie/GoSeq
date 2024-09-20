@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package notes
 
 import (
 	"DnFreddie/GoSeq/lib"
@@ -11,7 +11,7 @@ import (
 )
 
 // newCmd represents the new command
-var newCmd = &cobra.Command{
+var NewCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new daily note ",
 	Long: `Create a new daily note or open an exsisitng one for today
@@ -27,7 +27,6 @@ var newCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(newCmd)
 
 	// Here you will define your flags and configuration settings.
 

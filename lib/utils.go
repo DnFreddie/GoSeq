@@ -8,4 +8,8 @@ func Map[T any, U any](input []T, fn func(T) U) []U {
 }
 
 
-const ENV_VAR="/tmp/GO_SEQ_PROJECT.txt"
+const( 
+	ENV_VAR="/tmp/GO_SEQ_PROJECT.txt"
+	PROJECTS_META=PROJECTS+"/.PROJECTS_META.json"
+)
+

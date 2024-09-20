@@ -3,6 +3,7 @@ package github
 import (
 	"DnFreddie/GoSeq/lib"
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -13,15 +14,17 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type Project struct {
-	Name          string
-	Owner         string
+	Name          string `json:"name"`
+	Owner         string `json:"owner"`
 	DefaultBranch string `json:"default_branch"`
 	Url           string `json:"repo_url"`
 	Issues        []map[string][]Todo
-	Location      string
+	Location      string `json:"location"`
 }
 
 func ProjectInit(localPath string) (*Project, error) {
@@ -158,4 +161,119 @@ func makeAbsolute(fPath string) (string, error) {
 	}
 
 	return dest, nil
+}
+
+func (p *Project) saveProject() error {
+	home := viper.GetString("HOME")
+	var projects []Project
+
+	metaPath := path.Join(home, lib.PROJECTS_META)
+
+	if _, err := os.Stat(metaPath); err == nil {
+		f, err := os.Open(metaPath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		contents, err := io.ReadAll(f)
+		if err != nil {
+			return err
+		}
+
+		if len(contents) > 0 {
+			err = json.Unmarshal(contents, &projects)
+			if err != nil {
+				return err
+			}
+		}
+	} else if os.IsNotExist(err) {
+		projects = make([]Project, 0)
+	} else {
+		return err
+	}
+
+	if projectExists(projects, p) {
+		return nil
+	}
+
+	projects = append(projects, *p)
+
+	jsonProjects, err := json.Marshal(projects)
+	if err != nil {
+		return err
+	}
+
+	// Create a temp file for to not lose data
+	tempFilePath := metaPath + ".tmp"
+	tempFile, err := os.OpenFile(tempFilePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0664)
+	if err != nil {
+		return err
+	}
+	defer tempFile.Close()
+
+	if _, err := tempFile.Write(jsonProjects); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tempFilePath, metaPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Helper function to check if the project already exists
+func projectExists(projects []Project, newProject *Project) bool {
+	for _, existingProject := range projects {
+		if existingProject.Owner == newProject.Owner && existingProject.Name == newProject.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func ReadRecent(list bool) error {
+	home := viper.GetString("HOME")
+
+	if !list {
+		f, err := os.Open(lib.ENV_VAR)
+		if err != nil {
+			log.Println("No recent Projects found, listing recent projects instead")
+			return ReadRecent(true)
+		}
+		defer f.Close()
+
+		p, err := io.ReadAll(f)
+		if err != nil {
+			log.Println("Failed to read recent project, listing recent projects instead")
+			return ReadRecent(true)
+		}
+
+		lib.Edit(string(p) + ".md")
+		return nil
+	}
+
+	f, err := os.Open(path.Join(home, lib.PROJECTS_META))
+
+	if err != nil {
+		return fmt.Errorf("The meta file is empty add the project to fix this\n")
+	}
+	var projecArray []Project
+
+	contents, err := io.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(contents, &projecArray)
+	if err != nil {
+		return err
+	}
+	if len(projecArray) == 0 {
+		return fmt.Errorf("The meta file is empty add the project to fix this\n")
+	}
+	pr := ChoseProject(&projecArray)
+	pr.EditProject()
+	return nil
+
 }

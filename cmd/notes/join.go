@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package notes
 
 import (
 	"DnFreddie/GoSeq/lib"
@@ -17,7 +17,7 @@ import (
 
 // joinCmd represents the join command
 var period string
-var joinCmd = &cobra.Command{
+var JoinCmd = &cobra.Command{
 	Use:   "join",
 	Short: "Joins notes in one ",
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
@@ -36,10 +36,8 @@ var joinCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(joinCmd)
-
 	// Here you will define your flags and configuration settings.
-	joinCmd.Flags().StringVarP(&period, "range", "r", "week", "Date range (day, week, month, year, all)")
+	JoinCmd.Flags().StringVarP(&period, "range", "r", "week", "Date range (day, week, month, year, all)")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:

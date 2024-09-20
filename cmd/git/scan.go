@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package git
 
 import (
 	"DnFreddie/GoSeq/lib/github"
@@ -49,7 +49,7 @@ var scanCmd = &cobra.Command{
 }
 
 func init() {
-	gitCmd.AddCommand(scanCmd)
+	GitCmd.AddCommand(scanCmd)
 
 	// Here you will define your flags and configuration settings.
 	// scanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

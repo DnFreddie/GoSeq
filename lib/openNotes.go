@@ -15,16 +15,11 @@ import (
 
 func checkAgenda() string {
 
-	HOME, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
+	HOME := viper.GetString("HOME")
 	agenda := path.Join(HOME, "Documents/Agenda")
 
-	err = os.MkdirAll(agenda, os.FileMode(0755))
-
-	if err != nil {
-		log.Fatal(err)
+	if err := os.MkdirAll(agenda, os.FileMode(0755)); err != nil {
+		log.Fatal("Failed to create an Agenda Directory", err)
 	}
 
 	return agenda
@@ -58,7 +53,7 @@ func DailyNote() error {
 func ChoseNote() error {
 
 	home := viper.GetString("HOME")
-	entries, err := os.ReadDir(path.Join(home,AGENDA))
+	entries, err := os.ReadDir(path.Join(home, AGENDA))
 
 	if err != nil {
 		return err
@@ -81,6 +76,10 @@ func ChoseNote() error {
 
 		}
 	}
+	if len(names) == 0 {
+		fmt.Errorf("No DailyNotes found try to create one with goseq new")
+		return err
+	}
 
 	choice, err := RunTerm(names)
 	if err != nil {
@@ -93,7 +92,7 @@ func ChoseNote() error {
 	chosenNote := &Note{}
 	for _, v := range choice {
 		*chosenNote = Note{
-			Path: path.Join(home,AGENDA, v.Format(string(FileDate)+".md")),
+			Path: path.Join(home, AGENDA, v.Format(string(FileDate)+".md")),
 			Date: v,
 		}
 	}

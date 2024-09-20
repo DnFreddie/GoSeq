@@ -16,11 +16,10 @@ import (
 )
 
 const (
-AGENDA = "/Documents/Agenda/"
-JOINED = "/tmp/.go_seq_joined.md"
-PROJECTS = "/Documents/Agenda/projects"
+	AGENDA   = "/Documents/Agenda/"
+	JOINED   = "/tmp/.go_seq_joined.md"
+	PROJECTS = "/Documents/Agenda/projects"
 )
-
 
 type Note struct {
 	Date     time.Time
@@ -36,7 +35,7 @@ func (n *Note) writeNote() error {
 
 	}
 
-	absPath := path.Join(home,AGENDA, n.Path)
+	absPath := path.Join(home, AGENDA, n.Path)
 	if _, err := os.Stat(absPath); errors.Is(err, os.ErrNotExist) {
 
 		return err
@@ -113,7 +112,6 @@ func (n *Note) parseDate() string {
 	//layout := "Mon Jan 2 15:04:05 PM MST 2006"
 	formated_Date := n.Date.Format(string(FullDate))
 
-
 	return formated_Date
 }
 
@@ -123,7 +121,7 @@ func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 
 	layout := string(FullDate)
 	s := bufio.NewScanner(contents)
-for  s.Scan() {
+	for s.Scan() {
 		line := s.Text()
 		trimmedLine := strings.TrimSpace(line)
 
@@ -139,7 +137,7 @@ for  s.Scan() {
 		if strings.EqualFold(trimmedLine, "END") {
 			if isCollecting {
 				ch <- currentNote
-				isCollecting = false 
+				isCollecting = false
 			}
 			continue
 		}
@@ -155,4 +153,3 @@ for  s.Scan() {
 
 	return nil
 }
-

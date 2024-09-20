@@ -1,17 +1,16 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package notes
 
 import (
 	"DnFreddie/GoSeq/lib"
 	"log"
-
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
+// ListCmd represents the list command
+var ListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List notes and pick the one you want",
 	Long: `
@@ -27,7 +26,6 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 

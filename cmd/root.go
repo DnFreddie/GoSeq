@@ -4,6 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"DnFreddie/GoSeq/cmd/git"
+	"DnFreddie/GoSeq/cmd/notes"
 	"DnFreddie/GoSeq/config"
 	"log"
 	"os"
@@ -12,9 +14,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
 	Use:   "GoSeq",
 	Short: "GoSeq diary for the devleoper and their projectes all in one binary",
 	Long: `Goseq provides a way to connect your daily notes with your project notes.
@@ -37,7 +38,7 @@ func Execute() {
 	//lib.RunTerm()
 
 	///	errror  := lib.ChoseNote()
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 
 	if err != nil {
 		os.Exit(1)
@@ -55,11 +56,23 @@ func init() {
 	// when this action is called directly.
 
 	cobra.OnInitialize(config.LoadConfig)
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("Failed to get home directory: %v", err)
 	}
 	viper.Set("HOME", homeDir)
+	addSubcommandsPallet()
 }
+
+
+func addSubcommandsPallet() {
+	RootCmd.AddCommand(git.GitCmd)
+	RootCmd.AddCommand(notes.JoinCmd)
+	RootCmd.AddCommand(notes.NewCmd)
+	RootCmd.AddCommand(notes.ListCmd)
+}
+
+
+
 

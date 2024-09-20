@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package git
 
 import (
 	"DnFreddie/GoSeq/lib/github"
@@ -46,7 +46,7 @@ var postCmd = &cobra.Command{
 }
 
 func init() {
-	gitCmd.AddCommand(postCmd)
+	GitCmd.AddCommand(postCmd)
 
 	// Here you will define your flags and configuration settings.
 

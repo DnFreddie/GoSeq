@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 	"golang.org/x/sync/semaphore"
@@ -98,7 +99,7 @@ Url: %v
 }
 
 func (p *Project) EditProject() {
-	home :=viper.GetString("HOME")
+	home := viper.GetString("HOME")
 	pDir := path.Join(home, lib.PROJECTS, p.Owner)
 	err := os.MkdirAll(pDir, 0755)
 
@@ -119,12 +120,16 @@ func (p *Project) EditProject() {
 		}
 
 	}
+	if err := p.saveProject();err != nil{
+		fmt.Errorf("Failed to save the project u have to rerwite to be able to open the noptes err:%v\n",err)
+		time.Sleep(3* time.Second)
+	}
 
 	lib.Edit(project)
 
 }
 
-func PickProject(pPath string) string {
+func PickProject(pPath string) *Project {
 
 	prArray, err := ListRepos(pPath)
 	var p *Project
@@ -140,6 +145,5 @@ func PickProject(pPath string) string {
 		p = ChoseProject(&prArray)
 	}
 	p.EditProject()
-	joinded := path.Join(p.Owner, p.Name)
-	return joinded
+	return p
 }
