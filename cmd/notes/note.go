@@ -144,20 +144,17 @@ func ChoseNote() error {
 
 	var names []map[string]time.Time
 	for _, entry := range entries {
-		if !entry.IsDir() {
-			dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
-			rawDate, err := time.Parse(string(FileDate), dateStirng)
+		rawDate, err := isNote(entry)
 
-			if err != nil {
-				continue
-			}
-
-			dateMap := make(map[string]time.Time)
-			fmtTime := rawDate.Format(string(FullDate))
-			dateMap[fmtTime] = rawDate
-			names = append(names, dateMap)
-
+		if err != nil {
+			continue
 		}
+
+		dateMap := make(map[string]time.Time)
+		fmtTime := rawDate.Format(string(FullDate))
+		dateMap[fmtTime] = rawDate
+		names = append(names, dateMap)
+
 	}
 	if len(names) == 0 {
 		fmt.Errorf("No DailyNotes found try to create one with goseq new")
@@ -168,9 +165,6 @@ func ChoseNote() error {
 	if err != nil {
 		return err
 
-	}
-	if err != nil {
-		return err
 	}
 	chosenNote := &Note{}
 	for _, v := range choice {
@@ -184,4 +178,17 @@ func ChoseNote() error {
 		return nil
 	}
 	return nil
+}
+func isNote(entry os.DirEntry) (time.Time, error) {
+	var rawDate time.Time
+	if entry.IsDir() {
+		return rawDate, fmt.Errorf("Not a file so not a note")
+	}
+	dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
+	rawDate, err := time.Parse(string(FileDate), dateStirng)
+
+	if err != nil {
+		return rawDate, err
+	}
+	return rawDate, nil
 }

@@ -73,5 +73,6 @@ func addSubcommandsPallet() {
 	RootCmd.AddCommand(git.GitCmd)
 	RootCmd.AddCommand(notes.JoinCmd)
 	RootCmd.AddCommand(notes.NewCmd)
+	RootCmd.AddCommand(notes.SearchCmd)
 	RootCmd.AddCommand(notes.ListCmd)
 }
