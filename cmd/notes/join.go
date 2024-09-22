@@ -12,30 +12,38 @@ import (
 )
 
 // joinCmd represents the join command
-var period string
+var periodVarCmd string
+var dateRangeVar int 
 var JoinCmd = &cobra.Command{
 	Use:   "join",
 	Short: "Joins notes in one ",
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		var period Period
+		dr := parseDateRange(periodVarCmd)
+		period.Range = dr
+		period.Amount = dateRangeVar
+
+
 		AGENDA := viper.GetString("AGENDA")
-		p := parseDateRange(period)
 
 		dirs, _ := os.ReadDir(AGENDA)
-		err := JoinNotes(&dirs, p)
+		err := JoinNotes(&dirs, period)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-	
+
 		ScanEverything()
 	},
 }
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	JoinCmd.Flags().StringVarP(&period, "range", "r", "week", "Date range (day, week, month, year, all)")
+	//JoinCmd.Flags().StringVar(&periodVarCmd, "range", "r", "week", "Date range (day, week, month, year, all)")
+	JoinCmd.Flags().StringVarP(&periodVarCmd, "range", "r", "week", "Specify a time unit (week, year, day)Default 1 week ")
+	JoinCmd.Flags().IntVarP(&dateRangeVar, "times", "t", 1, "Specify home many times ago(3 weeeks ago)")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:

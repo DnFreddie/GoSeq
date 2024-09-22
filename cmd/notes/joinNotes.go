@@ -25,10 +25,15 @@ const (
 	Month DateRange = 30
 	Year  DateRange = 365
 	All   DateRange = 0
+	Yesterday   DateRange = 2
 
 	JOINED = "/tmp/.go_seq_joined.md"
 )
 
+type Period struct{
+	Range DateRange
+	Amount int
+}
 func parseDateRange(input string) DateRange {
 	switch strings.ToLower(input) {
 	case "day":
@@ -46,8 +51,10 @@ func parseDateRange(input string) DateRange {
 		return Week
 	}
 }
-func JoinNotes(entries *[]fs.DirEntry, period DateRange) error {
+func JoinNotes(entries *[]fs.DirEntry, period Period) error {
+
 	join := path.Join(JOINED)
+
 	notes := getNotes(entries, period)
 	if  len(notes)==0{
 		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
@@ -167,14 +174,19 @@ func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 	return nil
 }
 
-func getNotes(e *[]os.DirEntry, dr DateRange) []Note {
+func getNotes(e *[]os.DirEntry,pr Period) []Note {
 	var noteArray []Note
 	AGENDA := viper.GetString("AGENDA")
+	now := time.Now()
 	for _, v := range *e {
 		if !v.IsDir() {
 			raw_date := strings.Replace(v.Name(), ".md", "", -1)
 			date, err := time.Parse(string(FileDate), raw_date)
+
 			if err != nil {
+				continue
+			}
+			if !dateInRange(now,pr,date){
 				continue
 			}
 			note := Note{
@@ -189,10 +201,6 @@ func getNotes(e *[]os.DirEntry, dr DateRange) []Note {
 	}
 	sortNotes(noteArray)
 
-	if dr == All || int(dr) > len(noteArray) {
-		return noteArray
-	}
 
-	startIndex := len(noteArray) - int(dr)
-	return noteArray[startIndex:]
+	return noteArray
 }
