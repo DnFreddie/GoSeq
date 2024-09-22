@@ -5,16 +5,15 @@ import (
 
 )
 
-type testCase struct {
+
+func TestContainsPattern(t *testing.T) {
+	testCases := []struct{
 	name      string
 	line      string
 	pattern   Pattern
 	shouldErr bool
 	message   string
-}
-
-func TestContainsPattern(t *testing.T) {
-	testCases := []testCase{
+}{
 		{"Test TODO", "TODO!! This is an urgent task", TODO, false, "! This is an urgent task"},
 		{"Test IDEA", "IDEA: This is an Idea", IDEA, false, ": This is an Idea"},
 		{"Test NOTE", "NOTE! This is the Note!", NOTE, false, "This is the Note!"},
