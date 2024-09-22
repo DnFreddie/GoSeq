@@ -32,10 +32,14 @@ goseq list
 
 #### Join Notes  
 - Combine multiple notes (from a specific period like a week or a year) into one.  
+    -  the defualt is from one week 
 - Any changes made to the combined note are applied to the original notes.
 
+`-r` is for datetime
+`-t` How many times ex. notes from 3 weeks
+
 ```bash
-goseq join -r <week|day|year|all>
+goseq join -r <week|day|year|all> -t 3
 ```
 
 ---
