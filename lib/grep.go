@@ -114,6 +114,7 @@ func searchToLower(line, pattern string) (bool, string) {
 func ProcessUserInput(matchArray []map[string][]GrepMatch) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Choose the note to open:")
+	fmt.Print("#? ")
 
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -124,11 +125,13 @@ func ProcessUserInput(matchArray []map[string][]GrepMatch) error {
 		i, err := strconv.Atoi(text)
 		if err != nil {
 			fmt.Println("Invalid input. Please enter a number.")
+			fmt.Print("#? ")
 			continue
 		}
 
 		if i < 1 || i > len(matchArray) {
-			fmt.Println("Out of bounds. Please choose a valid option.")
+			fmt.Println("Unable to choose  a note")
+			fmt.Print("#? ")
 			continue
 		}
 

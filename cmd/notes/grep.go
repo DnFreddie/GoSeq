@@ -78,7 +78,7 @@ func printNotes(notes []map[string][]lib.GrepMatch) {
 			if err != nil {
 				lib.InColors(lib.Blue, fileName+"\n")
 			} else {
-				lib.InColors(lib.Green, fmt.Sprintf("Option: %d\n", i+1))
+				lib.InColors(lib.Green, fmt.Sprintf("%d. ", i+1))
 				lib.InColors(lib.Blue, date.Format(string(FullDate))+"\n")
 			}
 

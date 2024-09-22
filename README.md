@@ -38,7 +38,49 @@ goseq list
 goseq join -r <week|day|year|all>
 ```
 
+Here’s a polished version of your text with improved clarity and formatting:
+
 ---
+
+#### Search Within Notes
+
+This feature allows you to search for specific patterns within your notes and select the one you wish to open.
+
+```bash
+# GoSeq will join the results, so you don't need to worry about the quotes.
+goseq search test agenda
+```
+
+The flags used are similar to those in `grep`, making them familiar to users.
+
+##### Case Insensitive Search: `-i`
+
+```bash
+goseq search -i test agenda  
+```
+
+##### POSIX Compatible Regex: `-E`
+
+```bash
+goseq search -E ^test$agenda
+```
+
+---
+
+##### Combining Flags
+
+You can combine both flags for more flexible searching:
+
+```bash
+goseq search -i -E ^TEST$AGENDA
+```
+
+--- 
+
+Feel free to let me know if you need any further adjustments!
+
+---
+
 
 ### 2. Projects/Repos
 
