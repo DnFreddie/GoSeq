@@ -38,8 +38,6 @@ goseq list
 goseq join -r <week|day|year|all>
 ```
 
-Here’s a polished version of your text with improved clarity and formatting:
-
 ---
 
 #### Search Within Notes
@@ -80,13 +78,15 @@ goseq search -i -E ^TEST$AGENDA
 ### 2. Projects/Repos
 
 #### Project Notes  
-- Open the most recently accessed project note.  
-- If no recent note is found, you’ll be prompted to choose a project manually:
-```bash
-goseq git
-```
+-  `-r` Open the most recently accessed project note.  
+    - If no recent note is found, you’ll be prompted to choose a project manually:
 
+```bash
+#Open a recent Project
+goseq git -r 
+```
 - Optionally, provide a path to the directory containing the repository or project:
+
 ```bash
 goseq git --path <Repo/dir containing repos>
 ```
@@ -112,10 +112,16 @@ The urgency of a TODO is indicated by repeating the final character of the keywo
 #### Scan TODOs  
 - Search for TODOs in the provided directory and generate a report:
 ```bash
-goseq git scan --path <Repo/dir containing repos>
+goseq git scan -p <Repo/dir containing repos>
+```
+- `-a` add the project to the Known project after scaning
+
+```bash
+#if dir has more repos it will also save them
+goseq git scan -a -p <Repo/dir containing repos>
 ```
 
-##### Example Report  
+##### Example Report 
 ```md
 Project: DnFreddie/Blog
 ------------------------------
@@ -126,11 +132,14 @@ Urgency: 5
 ------------------------------
 ```
 
-#### Push TODOs  
-- Push new TODO issues to GitHub:
+#### Post TODOs  
+`! Warnig` It will not assk you for conformation (to be implemented ...)
+- Post new TODO issues to GitHub:
+
 ```bash
-goseq git push
+goseq git post  -p <path/to/the/repo>
 ```
+
 
 ---
 
