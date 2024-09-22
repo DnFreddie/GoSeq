@@ -77,11 +77,6 @@ goseq search -i -E ^TEST$AGENDA
 
 --- 
 
-Feel free to let me know if you need any further adjustments!
-
----
-
-
 ### 2. Projects/Repos
 
 #### Project Notes  
