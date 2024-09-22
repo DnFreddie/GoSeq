@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -108,4 +109,40 @@ func searchToLower(line, pattern string) (bool, string) {
 		return true, highlightMatch(line, match)
 	}
 	return false, ""
+}
+
+func ProcessUserInput(matchArray []map[string][]GrepMatch) error {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println("Choose the note to open:")
+
+	for scanner.Scan() {
+		text := scanner.Text()
+		if text == "" {
+			break
+		}
+
+		i, err := strconv.Atoi(text)
+		if err != nil {
+			fmt.Println("Invalid input. Please enter a number.")
+			continue
+		}
+
+		if i < 1 || i > len(matchArray) {
+			fmt.Println("Out of bounds. Please choose a valid option.")
+			continue
+		}
+
+		for k := range matchArray[i-1] {
+			if err := Edit(k); err != nil {
+				return fmt.Errorf("error editing file %s: %w", k, err)
+			}
+		}
+		break
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("scanner error: %w", err)
+	}
+
+	return nil
 }
