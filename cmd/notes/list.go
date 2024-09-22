@@ -4,7 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"log"
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +21,8 @@ var ListCmd = &cobra.Command{
 		err := ChoseNote()
 		if err != nil{
 
-		log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	},
 }

@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,8 +25,10 @@ var JoinCmd = &cobra.Command{
 		dirs, _ := os.ReadDir(AGENDA)
 		err := JoinNotes(&dirs, p)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
+	
 		ScanEverything()
 	},
 }

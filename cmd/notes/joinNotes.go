@@ -49,6 +49,9 @@ func parseDateRange(input string) DateRange {
 func JoinNotes(entries *[]fs.DirEntry, period DateRange) error {
 	join := path.Join(JOINED)
 	notes := getNotes(entries, period)
+	if  len(notes)==0{
+		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
+	}
 
 	f, err := os.OpenFile(join, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

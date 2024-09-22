@@ -14,6 +14,7 @@ import (
 )
 
 var ProjectPath string
+var recent string
 
 // gitCmd represents the git command
 var GitCmd = &cobra.Command{
@@ -33,10 +34,17 @@ And the for the saved.You can see what Projects did u saved via the git list com
 			if err != nil {
 				slog.Warn("Failed to read to the TMP file", "err", err)
 			}
+			return
+		}
+		if recent != "" {
+			if err := ReadRecent(false);err !=nil{
+				log.Fatal(err)
+			}
 
-		} else {
-			err := ReadRecent(false)
-			log.Fatal(err)
+			
+		}
+		if recent == "" && ProjectPath == "" {
+			cmd.Help()
 		}
 
 	},
@@ -49,7 +57,9 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 
-	GitCmd.PersistentFlags().StringVar(&ProjectPath, "path", "", "A path to your project/dir where you store them")
+	GitCmd.PersistentFlags().StringVarP(&ProjectPath, "path", "p", "", "A path to your project/dir where you store them")
+	GitCmd.Flags().StringVarP(&recent, "recent", "r", "", "Open Recent Project")
+
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// gitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

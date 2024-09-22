@@ -6,13 +6,13 @@ package git
 import (
 	"context"
 	"fmt"
-	"log"
+	"os"
 	"sync"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/semaphore"
 )
-
+var add bool
 var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Scans todos from the given path",
@@ -21,7 +21,8 @@ var ScanCmd = &cobra.Command{
 		if ProjectPath != "" {
 			prArray, err := ListProjects(ProjectPath)
 			if err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 
 			var wg sync.WaitGroup
@@ -42,6 +43,13 @@ var ScanCmd = &cobra.Command{
 			}
 
 			wg.Wait()
+			if len(prArray)!= 0 && add {
+				for _,p:= range prArray{
+					p.saveProject()
+				}
+			}
+
+			
 		} else {
 			cmd.Help()
 		}
@@ -51,6 +59,7 @@ var ScanCmd = &cobra.Command{
 func init() {
 	GitCmd.AddCommand(ScanCmd)
 
+	ScanCmd.Flags().BoolVarP(&add, "add", "a", false, "Add project to known projects")
 	// Here you will define your flags and configuration settings.
 	// scanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

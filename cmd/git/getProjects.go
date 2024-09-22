@@ -66,7 +66,7 @@ func ListProjects(pt string) ([]Project, error) {
 	var projects []Project
 	repoChan := make(chan *Project, 100)
 
-	var sem = semaphore.NewWeighted(int64(20))
+	var sem = semaphore.NewWeighted(int64(30))
 	go func() {
 		for repo := range repoChan {
 			projects = append(projects, *repo)
@@ -108,6 +108,9 @@ func ListProjects(pt string) ([]Project, error) {
 	}
 
 	wg.Wait()
+	if len(projects)==0{
+		return projects,fmt.Errorf("No Projects Found")
+	}
 
 	return projects, nil
 
@@ -118,7 +121,7 @@ func ReadRecent(list bool) error {
 	if !list {
 		f, err := os.Open(ENV_VAR)
 		if err != nil {
-			log.Println("No recent Projects found, listing recent projects instead")
+			fmt.Println("No recent Projects found, listing added projects instead")
 			return ReadRecent(true)
 		}
 		defer f.Close()
@@ -134,10 +137,9 @@ func ReadRecent(list bool) error {
 	}
 
 	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
-	fmt.Println(path.Join(PROJECTS,PROJECTS_META))
 
 	if err != nil {
-		return fmt.Errorf("The meta file is empty add the project to fix this\n")
+		return fmt.Errorf("The meta file is empty add the project to fix this\n\ngit -p <path/to/project/\n")
 	}
 	var projecArray []Project
 

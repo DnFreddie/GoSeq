@@ -4,7 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,8 @@ var ListCmd = &cobra.Command{
 The paths are located in $HOME/Documents/Agenda/projects/.PROJECTS_META.json `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := ReadRecent(true); err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	},
 }

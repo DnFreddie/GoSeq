@@ -139,7 +139,7 @@ func ChoseNote() error {
 	entries, err := os.ReadDir(AGENDA)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
 	}
 
 	var names []map[string]time.Time
