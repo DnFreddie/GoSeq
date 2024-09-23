@@ -17,23 +17,29 @@ import (
 	"github.com/spf13/viper"
 )
 
+type separator string
+
+const (
+	EOF separator = "#------------------------------"
+)
+
 type DateRange int
 
 const (
-	Day   DateRange = 1
-	Week  DateRange = 7
-	Month DateRange = 30
-	Year  DateRange = 365
-	All   DateRange = 0
-	Yesterday   DateRange = 2
-
-	JOINED = "/tmp/.go_seq_joined.md"
+	Day       DateRange = 1
+	Week      DateRange = 7
+	Month     DateRange = 30
+	Year      DateRange = 365
+	All       DateRange = 0
+	Yesterday DateRange = 2
+	JOINED              = "/tmp/.go_seq_joined.md"
 )
 
-type Period struct{
-	Range DateRange
+type Period struct {
+	Range  DateRange
 	Amount int
 }
+
 func parseDateRange(input string) DateRange {
 	switch strings.ToLower(input) {
 	case "day":
@@ -51,23 +57,19 @@ func parseDateRange(input string) DateRange {
 		return Week
 	}
 }
+
 func JoinNotes(entries *[]fs.DirEntry, period Period) error {
-
 	join := path.Join(JOINED)
-
 	notes := getNotes(entries, period)
-	if  len(notes)==0{
+	if len(notes) == 0 {
 		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
 	}
-
 	f, err := os.OpenFile(join, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-
 	for _, v := range notes {
-
 		err := v.read()
 		if err != nil {
 			fmt.Println(err)
@@ -75,22 +77,45 @@ func JoinNotes(entries *[]fs.DirEntry, period Period) error {
 		}
 		var buffer bytes.Buffer
 		buffer.Write(v.Contents)
-		buffer.Write([]byte("END"))
+		buffer.WriteString("\n\n")
+		buffer.WriteString(string(EOF))
 		buffer.Write([]byte("\n\n"))
-
 		_, err = f.Write(buffer.Bytes())
-
 		if err != nil {
 			log.Println(err)
 		}
 		v.Contents = nil
 	}
-
 	err = lib.Edit(join)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return nil
+
+	content, err := os.ReadFile(join)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(content), "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRight(line, " \t")
+	}
+	strippedContent := strings.Join(lines, "\n")
+	return os.WriteFile(join, []byte(strippedContent), 0644)
+}
+
+func checkSeparator(line string) bool {
+	if len(line) < 4 || line[0] != '#' {
+		return false
+	}
+	var hyphenCount int
+	for i := 1; i < len(line); i++ {
+		if line[i] == '-' {
+			hyphenCount++
+		} else {
+			break
+		}
+	}
+	return hyphenCount >= 3
 }
 
 func ScanEverything() {
@@ -138,43 +163,42 @@ func ScanEverything() {
 func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 	var currentNote Note
 	isCollecting := false
-
 	layout := string(FullDate)
 	s := bufio.NewScanner(contents)
 	for s.Scan() {
 		line := s.Text()
 		trimmedLine := strings.TrimSpace(line)
-
 		parsedTime, err := time.Parse(layout, trimmedLine)
 		if err == nil {
-			if !isCollecting {
-				currentNote = Note{Date: parsedTime}
-				isCollecting = true
+			if isCollecting {
+				ch <- currentNote
 			}
+			currentNote = Note{Date: parsedTime}
+			isCollecting = true
 			continue
 		}
-
-		if strings.EqualFold(trimmedLine, "END") {
+		if checkSeparator(trimmedLine) {
 			if isCollecting {
+				currentNote.Contents = bytes.TrimRight(currentNote.Contents, "\n")
 				ch <- currentNote
 				isCollecting = false
 			}
 			continue
 		}
-
 		if isCollecting {
-			currentNote.Contents = append(currentNote.Contents, []byte(line+"\n")...)
+			currentNote.Contents = append(currentNote.Contents, line...)
+			currentNote.Contents = append(currentNote.Contents, '\n')
 		}
 	}
-
-	if err := s.Err(); err != nil {
-		return err
+	if isCollecting {
+		// Handle the last if there's no separator
+		currentNote.Contents = bytes.TrimRight(currentNote.Contents, "\n")
+		ch <- currentNote
 	}
-
-	return nil
+	return s.Err()
 }
 
-func getNotes(e *[]os.DirEntry,pr Period) []Note {
+func getNotes(e *[]os.DirEntry, pr Period) []Note {
 	var noteArray []Note
 	AGENDA := viper.GetString("AGENDA")
 	now := time.Now()
@@ -186,7 +210,7 @@ func getNotes(e *[]os.DirEntry,pr Period) []Note {
 			if err != nil {
 				continue
 			}
-			if !dateInRange(now,pr,date){
+			if !dateInRange(now, pr, date) {
 				continue
 			}
 			note := Note{
@@ -200,7 +224,6 @@ func getNotes(e *[]os.DirEntry,pr Period) []Note {
 
 	}
 	sortNotes(noteArray)
-
 
 	return noteArray
 }
