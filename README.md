@@ -137,13 +137,15 @@ Urgency: 5
 ```
 
 #### Post TODOs  
-`! Warnig` It will not assk you for conformation (to be implemented ...)
-- Post new TODO issues to GitHub:
+Post new TODO issues to GitHub
+This will check weather todos already exist on the github.
+Then ask you do you want to push them.
+And push the onese that do not exist.
 
 ```bash
 goseq git post  -p <path/to/the/repo>
 ```
-
+[Goseq Post Example](/public/static/goseqPlan.png)
 
 ---
 

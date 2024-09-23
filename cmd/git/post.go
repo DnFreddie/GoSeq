@@ -37,7 +37,7 @@ var PostCmd = &cobra.Command{
 				log.Fatal(err)
 
 			}
-			p.SearchIssueByTitle(token, &gitIssues)
+			p.ApplayIssues(token, &gitIssues)
 
 		}
 
