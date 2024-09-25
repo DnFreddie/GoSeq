@@ -3,6 +3,7 @@ package notes
 import (
 	"DnFreddie/goseq/lib"
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -32,17 +33,17 @@ func (d DNote) Format() (string, error) {
 
 	rawDate := path.Base(strings.TrimSuffix(d.Path, ".md"))
 
-	date, err := time.Parse("2006-01-02", rawDate) 
+	date, err := time.Parse("2006-01-02", rawDate)
 	if err != nil {
 		return "", err
 	}
-	return date.Format(string(FullDate)), nil 
+	return date.Format(string(FullDate)), nil
 }
 func (d DNote) GetPath() string {
 	return d.Path
 }
-func (d DNote)GetDate() time.Time{
-	return  time.Time{}
+func (d DNote) GetDate() time.Time {
+	return time.Time{}
 }
 
 func (n *DNote) read() error {
@@ -106,27 +107,51 @@ func (n *DNote) writeNote() error {
 	return nil
 }
 
-
 func dailyNote() error {
 	agenda := checkAgenda()
 	now := time.Now()
 	date := now.Format(string(FileDate))
 	formattedTime := now.Format(string(FullDate))
 
+	var buffer bytes.Buffer
+	buffer.Write([]byte(formattedTime))
+	buffer.Write([]byte("\n" + strings.Repeat("-", len(formattedTime))))
+
 	dailyNote := path.Join(agenda, date+".md")
+
+	var originalContent []byte
+
 	if _, err := os.Stat(dailyNote); errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create(dailyNote)
-		defer f.Close()
 		if err != nil {
 			return err
 		}
-		f.Write([]byte(formattedTime))
-		f.Write([]byte("\n" + strings.Repeat("-", len(formattedTime))))
-
+		defer f.Close()
+		f.Write(buffer.Bytes())
+	} else {
+		content, err := os.ReadFile(dailyNote)
+		if err != nil {
+			return err
+		}
+		originalContent = content
 	}
+
 	err := lib.Edit(dailyNote)
 	if err != nil {
 		return err
+	}
+
+	editedContent, err := os.ReadFile(dailyNote)
+	if err != nil {
+		return err
+	}
+
+	if bytes.Equal(originalContent, editedContent) {
+		err := os.Remove(dailyNote)
+		if err != nil {
+			panic("Failed to clean up daily note")
+		}
+
 	}
 
 	return nil
