@@ -32,6 +32,35 @@ type Project struct {
 	Url           string `json:"repo_url"`
 	Issues        []map[string][]lib.Todo
 	Location      string `json:"location"`
+	NotePath      string `json:"note_path"`
+}
+
+func (p Project) GetPath() string {
+	return p.NotePath
+}
+
+func (p Project) Format() (string, error) {
+	return path.Join(p.Owner, p.Name), nil
+}
+func (p Project) GetDate() time.Time {
+	time := time.Now()
+	return time
+}
+
+type ProjectRetriver struct{}
+
+func NewDRetriver() *ProjectRetriver {
+	retriver := ProjectRetriver{}
+	return &retriver
+}
+
+func (d *ProjectRetriver) GetNotes(p lib.Period) ([]Project, error) {
+	notes, err := getSavedProjects()
+	fmt.Println(notes)
+	if err != nil {
+		return notes, err
+	}
+	return notes, nil
 }
 
 func ProjectInit(localPath string) (*Project, error) {
@@ -174,7 +203,7 @@ func (p *Project) saveProject() error {
 	PROJECTS := viper.GetString("PROJECTS")
 	var projects []Project
 
-	metaPath := path.Join(PROJECTS,PROJECTS_META)
+	metaPath := path.Join(PROJECTS, PROJECTS_META)
 
 	if _, err := os.Stat(metaPath); err == nil {
 		f, err := os.Open(metaPath)
@@ -211,7 +240,6 @@ func (p *Project) saveProject() error {
 		return err
 	}
 
-	// Create a temp file for to not lose data
 	tempFilePath := metaPath + ".tmp"
 	tempFile, err := os.OpenFile(tempFilePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0664)
 	if err != nil {
@@ -230,7 +258,6 @@ func (p *Project) saveProject() error {
 	return nil
 }
 
-// Helper function to check if the project already exists
 func projectExists(projects []Project, newProject *Project) bool {
 	for _, existingProject := range projects {
 		if existingProject.Owner == newProject.Owner && existingProject.Name == newProject.Name {
@@ -262,8 +289,9 @@ func (p *Project) EditProject() {
 		}
 
 	}
+	p.NotePath = project
 	if err := p.saveProject(); err != nil {
-		fmt.Errorf("Failed to save the project u have to rerwite to be able to open the noptes err:%v\n", err)
+		fmt.Errorf("Failed to save the project u have to rerwrite to be able to open the noptes err:%v\n", err)
 		time.Sleep(3 * time.Second)
 	}
 

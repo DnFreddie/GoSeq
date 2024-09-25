@@ -9,18 +9,11 @@ import (
 	"log"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
 )
-
-type Note struct {
-	Date     time.Time
-	Contents []byte
-	Path     string
-}
 
 type DateLayout string
 
@@ -29,7 +22,51 @@ const (
 	FullDate DateLayout = "January 2 2006"
 )
 
-func (n *Note) writeNote() error {
+type DNote struct {
+	Date     time.Time
+	Contents []byte
+	Path     string
+}
+
+func (d DNote) Format() (string, error) {
+
+	rawDate := path.Base(strings.TrimSuffix(d.Path, ".md"))
+
+	date, err := time.Parse("2006-01-02", rawDate) 
+	if err != nil {
+		return "", err
+	}
+	return date.Format(string(FullDate)), nil 
+}
+func (d DNote) GetPath() string {
+	return d.Path
+}
+func (d DNote)GetDate() time.Time{
+	return  time.Time{}
+}
+
+func (n *DNote) read() error {
+	f, err := os.Open(n.Path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	n.Contents, err = io.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (n *DNote) parseDate() string {
+	//layout := "Mon Jan 2 15:04:05 PM MST 2006"
+	formated_Date := n.Date.Format(string(FullDate))
+
+	return formated_Date
+}
+
+func (n *DNote) writeNote() error {
 	AGENDA := viper.GetString("AGENDA")
 	if n.Path == "" && !n.Date.IsZero() {
 
@@ -69,33 +106,6 @@ func (n *Note) writeNote() error {
 	return nil
 }
 
-func (n *Note) read() error {
-	f, err := os.Open(n.Path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	n.Contents, err = io.ReadAll(f)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (n *Note) parseDate() string {
-	//layout := "Mon Jan 2 15:04:05 PM MST 2006"
-	formated_Date := n.Date.Format(string(FullDate))
-
-	return formated_Date
-}
-
-func sortNotes(notes []Note) {
-
-	sort.Slice(notes, func(i, j int) bool {
-		return notes[i].Date.Before(notes[j].Date)
-	})
-}
 
 func dailyNote() error {
 	agenda := checkAgenda()
@@ -166,9 +176,9 @@ func ChoseNote() error {
 		return err
 
 	}
-	chosenNote := &Note{}
+	chosenNote := &DNote{}
 	for _, v := range choice {
-		*chosenNote = Note{
+		*chosenNote = DNote{
 			Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
 			Date: v,
 		}

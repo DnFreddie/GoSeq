@@ -115,8 +115,33 @@ func ListProjects(pt string) ([]Project, error) {
 	return projects, nil
 
 }
-func ReadRecent(list bool) error {
+
+
+func getSavedProjects()([]Project,error){
 	PROJECTS := viper.GetString("PROJECTS")
+	var projecArray []Project
+	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
+
+	if err != nil {
+		return projecArray, fmt.Errorf("The meta file is empty add the project to fix this\n\ngit -p <path/to/project/\n")
+	}
+
+	contents, err := io.ReadAll(f)
+	if err != nil {
+		return projecArray,err
+	}
+	err = json.Unmarshal(contents, &projecArray)
+	if err != nil {
+		return projecArray,err
+	}
+	if len(projecArray) == 0 {
+		return projecArray, fmt.Errorf("The meta file is empty add the project to fix this\n")
+	}
+	return projecArray,nil
+}
+
+
+func ReadRecent(list bool) error {
 
 	if !list {
 		f, err := os.Open(ENV_VAR)
@@ -136,24 +161,11 @@ func ReadRecent(list bool) error {
 		return nil
 	}
 
-	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
-
-	if err != nil {
-		return fmt.Errorf("The meta file is empty add the project to fix this\n\ngit -p <path/to/project/\n")
-	}
-	var projecArray []Project
-
-	contents, err := io.ReadAll(f)
-	if err != nil {
+	projecArray,err:= getSavedProjects()
+	if err !=  nil{
 		return err
 	}
-	err = json.Unmarshal(contents, &projecArray)
-	if err != nil {
-		return err
-	}
-	if len(projecArray) == 0 {
-		return fmt.Errorf("The meta file is empty add the project to fix this\n")
-	}
+
 	pr := choseProject(&projecArray)
 	pr.EditProject()
 	return nil

@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"log"
+	"fmt"
 	"log/slog"
 	"os"
 	"path"
@@ -14,7 +14,7 @@ import (
 )
 
 var ProjectPath string
-var recent string
+var recent bool
 
 // gitCmd represents the git command
 var GitCmd = &cobra.Command{
@@ -36,14 +36,15 @@ And the for the saved.You can see what Projects did u saved via the git list com
 			}
 			return
 		}
-		if recent != "" {
+		if recent  {
 			if err := ReadRecent(false);err !=nil{
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 
 			
 		}
-		if recent == "" && ProjectPath == "" {
+		if recent == false&& ProjectPath == "" {
 			cmd.Help()
 		}
 
@@ -58,7 +59,7 @@ func init() {
 	// and all subcommands, e.g.:
 
 	GitCmd.PersistentFlags().StringVarP(&ProjectPath, "path", "p", "", "A path to your project/dir where you store them")
-	GitCmd.Flags().StringVarP(&recent, "recent", "r", "", "Open Recent Project")
+	GitCmd.Flags().BoolVarP(&recent, "recent", "r", false, "Open Recent Project")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

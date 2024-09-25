@@ -30,8 +30,8 @@ var JoinCmd = &cobra.Command{
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var period Period
-		dr := parseDateRange(periodVarCmd)
+		var period lib.Period
+		dr := lib.ParseDateRange(periodVarCmd)
 		period.Range = dr
 		period.Amount = dateRangeVar
 
@@ -72,41 +72,15 @@ const (
 type DateRange int
 
 const (
-	Day       DateRange = 1
-	Week      DateRange = 7
-	Month     DateRange = 30
-	Year      DateRange = 365
-	All       DateRange = 0
-	Yesterday DateRange = 2
-	JOINED              = "/tmp/.go_seq_joined.md"
+	JOINED = "/tmp/.go_seq_joined.md"
 )
 
-type Period struct {
-	Range  DateRange
-	Amount int
-}
-
-func parseDateRange(input string) DateRange {
-	switch strings.ToLower(input) {
-	case "day":
-		return Day
-	case "week":
-		return Week
-	case "month":
-		return Month
-	case "year":
-		return Year
-	case "all":
-		return All
-	default:
-		fmt.Printf("Invalid date range: %s. Defaulting to 'all'.\n", input)
-		return Week
-	}
-}
-
-func JoinNotes(entries *[]fs.DirEntry, period Period) error {
+func JoinNotes(entries *[]fs.DirEntry, period lib.Period) error {
 	join := path.Join(JOINED)
-	notes := getNotes(entries, period)
+
+	retriver := NewDRetriver()
+	notes, _ := retriver.GetNotes(period)
+
 	if len(notes) == 0 {
 		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
 	}
@@ -166,7 +140,7 @@ func checkSeparator(line string) bool {
 
 func ScanEverything() {
 	var wg sync.WaitGroup
-	ch := make(chan Note)
+	ch := make(chan DNote)
 	f, err := os.Open(JOINED)
 	if err != nil {
 		log.Fatal(err)
@@ -192,7 +166,7 @@ func ScanEverything() {
 		wg.Add(1)
 		note := note
 
-		go func(n Note) {
+		go func(n DNote) {
 			defer wg.Done()
 
 			err := n.writeNote()
@@ -206,8 +180,8 @@ func ScanEverything() {
 
 }
 
-func ScanAgenda(contents io.Reader, ch chan<- Note) error {
-	var currentNote Note
+func ScanAgenda(contents io.Reader, ch chan<- DNote) error {
+	var currentNote DNote
 	isCollecting := false
 	layout := string(FullDate)
 	s := bufio.NewScanner(contents)
@@ -219,7 +193,7 @@ func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 			if isCollecting {
 				ch <- currentNote
 			}
-			currentNote = Note{Date: parsedTime}
+			currentNote = DNote{Date: parsedTime}
 			isCollecting = true
 			continue
 		}
@@ -244,57 +218,50 @@ func ScanAgenda(contents io.Reader, ch chan<- Note) error {
 	return s.Err()
 }
 
-func getNotes(e *[]os.DirEntry, pr Period) []Note {
-	var noteArray []Note
+
+
+
+
+func getNotes(pr lib.Period) ([]DNote, error) {
+	var errMessages []string
+	noteArray := []DNote{}
+
 	AGENDA := viper.GetString("AGENDA")
+
+	entries, err := os.ReadDir(AGENDA)
+	if err != nil {
+
+		return noteArray,&lib.NoNotesError{}
+	}
+
 	now := time.Now()
-	for _, v := range *e {
+
+	for _, v := range entries {
 		if !v.IsDir() {
-			raw_date := strings.Replace(v.Name(), ".md", "", -1)
-			date, err := time.Parse(string(FileDate), raw_date)
-
+			rawDate := strings.Replace(v.Name(), ".md", "", -1)
+			date, err := time.Parse(string(FileDate), rawDate)
 			if err != nil {
+				errMessages = append(errMessages, fmt.Sprintf("failed to parse file %s: %v", v.Name(), err))
 				continue
 			}
-			if !dateInRange(now, pr, date) {
-				continue
-			}
-			note := Note{
 
+			if !lib.DateInRange(now, pr, date) {
+				continue
+			}
+
+			note := DNote{
 				Path: path.Join(AGENDA, v.Name()),
 				Date: date,
 			}
 			noteArray = append(noteArray, note)
-
 		}
-
-	}
-	sortNotes(noteArray)
-
-	return noteArray
-}
-
-func dateInRange(today time.Time, r Period, date time.Time) bool {
-	var searchPattern time.Time
-
-	switch r.Range {
-	case Day:
-		searchPattern = today.AddDate(0, 0, -r.Amount)
-	case Yesterday:
-		searchPattern = today.AddDate(0, 0, -2)
-	case Week:
-		searchPattern = today.AddDate(0, 0, -r.Amount*7)
-	case Month:
-		searchPattern = today.AddDate(0, -r.Amount, 0)
-	case Year:
-		searchPattern = today.AddDate(-r.Amount, 0, 0)
-	case All:
-		return true
-
-	default:
-		return false
 	}
 
-	return !date.Before(searchPattern) && !date.After(today)
+	lib.SortNotes(noteArray)
 
+	if len(errMessages) > 0 {
+		return noteArray, fmt.Errorf(strings.Join(errMessages, "; "))
+	}
+
+	return noteArray, nil
 }
