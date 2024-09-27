@@ -36,7 +36,7 @@ var JoinCmd = &cobra.Command{
 
 		noteManager := NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
-		reader ,err := noteManager.JoinNotesWithContents(&notes)
+		reader, err := noteManager.JoinNotesWithContents(&notes)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -146,7 +146,6 @@ func (tr *trimReader) Read(p []byte) (n int, err error) {
 	return n, err
 }
 
-
 func checkSeparator(line string) bool {
 	if len(line) < 4 || line[0] != '#' {
 		return false
@@ -170,8 +169,6 @@ func scanJoined() {
 	defer f.Close()
 	scanner := NewDNoteScanner(f)
 	lib.ScanJoined(scanner)
-
-
 
 }
 
@@ -217,4 +214,38 @@ func getNotes(pr lib.Period) ([]DNote, error) {
 	}
 
 	return noteArray, nil
+}
+
+func joinByTitle(notes *[]DNote) (io.Reader, error) {
+	joinedFilePath := path.Join(JOINED)
+	f, err := os.OpenFile(joinedFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer f.Close()
+
+	var titles []string
+	for _, note := range *notes {
+		formattedName, err := note.Format()
+		if err != nil {
+			formattedName = note.GetPath()
+		}
+		titles = append(titles, formattedName)
+	}
+	joinedTitles := strings.Join(titles, "\n")
+
+	if _, err := f.Write([]byte(joinedTitles)); err != nil {
+		return nil, err
+	}
+
+	if err := lib.Edit(joinedFilePath); err != nil {
+		return nil, err
+	}
+
+	updatedContent, err := os.ReadFile(joinedFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read updated file: %w", err)
+	}
+
+	return bytes.NewReader(updatedContent), nil
 }

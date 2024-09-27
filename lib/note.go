@@ -33,7 +33,7 @@ type SearchResult struct {
 type Note interface {
 	Searchable
 	GetDate() time.Time
-	Delete()
+	Delete() error
 	Write() error
 
 }

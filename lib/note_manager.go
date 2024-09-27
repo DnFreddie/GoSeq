@@ -9,9 +9,10 @@ import (
 
 type NoteManager[T Note] interface {
 	GetNotes(period Period) ([]T, error)
-	JoinNotesByTitle(notes *[]T) ([]T, error)
+	JoinNotesByTitle(notes *[]T) (io.Reader,error)
 	JoinNotesWithContents(notes *[]T) (io.Reader, error)
 	Scan(r io.Reader, scanner NoteScanner[T]) ([]T, error)
+	DelteByTitle(r io.Reader, n *[]Note)error
 }
 
 type NoteScanner[T Note] interface {

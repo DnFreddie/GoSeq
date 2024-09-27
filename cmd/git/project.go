@@ -53,7 +53,8 @@ func (p Project) GetDate() time.Time {
 	return time
 }
 
-func (p Project)Delete(){
+func (p Project)Delete() error{
+	return nil
 
 }
 type ProjectRetriver struct{}

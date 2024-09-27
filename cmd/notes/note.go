@@ -6,14 +6,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
 type DateLayout string
@@ -45,7 +44,17 @@ func (d DNote) GetPath() string {
 func (d DNote) GetDate() time.Time {
 	return time.Time{}
 }
-func (d DNote) Delete() {
+
+func (d DNote) Delete() error {
+	formated, err := d.Format()
+	if err != nil {
+		formated = d.GetPath()
+	}
+	if err := os.Remove(d.GetPath()); err != nil {
+		return err
+	}
+	fmt.Println("Successfully deleted the Note", formated)
+	return nil
 
 }
 

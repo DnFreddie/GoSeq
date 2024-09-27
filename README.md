@@ -61,7 +61,7 @@ The flags used are similar to those in `grep`, making them familiar to users.
 goseq search -i test agenda  
 ```
 
-##### POSIX Compatible Regex: `-E`
+#####  Regex: `-E`
 
 ```bash
 goseq search -E ^test$agenda
@@ -75,6 +75,16 @@ You can combine both flags for more flexible searching:
 
 ```bash
 goseq search -i -E ^TEST$AGENDA
+```
+
+
+#### Delete Notes
+
+It opens a names  of the joined files inside the editor.
+And removes the one that has been deleted in the document by the user.
+
+```bash 
+goseq delte 
 ```
 
 --- 
