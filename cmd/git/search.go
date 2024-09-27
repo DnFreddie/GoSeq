@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 		}
 
 
-		projects, err := NewDRetriver().GetNotes(period)
+		projects, err := NewProjectManager().GetNotes(period)
 		if err != nil {
 			fmt.Printf("Faield to retrive projects: %v", err)
 			os.Exit(1)

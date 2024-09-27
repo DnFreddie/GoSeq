@@ -70,3 +70,18 @@ func (s *DNoteScanner) Scan() bool {
 
 	return false
 }
+
+func checkSeparator(line string) bool {
+	if len(line) < 4 || line[0] != '#' {
+		return false
+	}
+	var hyphenCount int
+	for i := 1; i < len(line); i++ {
+		if line[i] == '-' {
+			hyphenCount++
+		} else {
+			break
+		}
+	}
+	return hyphenCount >= 3
+}

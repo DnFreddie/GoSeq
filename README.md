@@ -112,6 +112,15 @@ goseq git --path <Repo/dir containing repos>
 ```bash 
 goseq git list
 ```
+**Delete Projects**
+
+It opens a names  of the joined files inside the editor.
+And removes the one that has been deleted in the document by the user.
+
+```bash 
+goseq git  delte 
+```
+
 
 ---
 

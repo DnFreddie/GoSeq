@@ -21,6 +21,12 @@ import (
 )
 
 // joinCmd represents the join command
+
+const (
+	JOINED        = "/tmp/.go_seq_notes_joined.md"
+	JOINED_DELETE = "/tmp/.go_seq_notes_delete_joined.md"
+)
+
 var periodVarCmd string
 var dateRangeVar int
 var JoinCmd = &cobra.Command{
@@ -69,20 +75,12 @@ const (
 
 type DateRange int
 
-const (
-	JOINED = "/tmp/.go_seq_joined.md"
-)
-
 func joinNotes(notes *[]DNote) (io.Reader, error) {
 	if len(*notes) == 0 {
 		return nil, fmt.Errorf("no DailyNotes found; try to create one with goseq new")
 	}
 
-	joinedFilePath := path.Join(JOINED)
-	f, err := os.OpenFile(joinedFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
-	}
+	f, err := os.OpenFile(JOINED, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 
 	for _, v := range *notes {
@@ -104,11 +102,11 @@ func joinNotes(notes *[]DNote) (io.Reader, error) {
 		v.Contents = nil
 	}
 
-	if err := lib.Edit(joinedFilePath); err != nil {
+	if err := lib.Edit(JOINED); err != nil {
 		return nil, fmt.Errorf("error editing file: %w", err)
 	}
 
-	readFile, err := os.Open(joinedFilePath)
+	readFile, err := os.Open(JOINED)
 	if err != nil {
 		return nil, fmt.Errorf("error opening edited file: %w", err)
 	}
@@ -144,32 +142,6 @@ func (tr *trimReader) Read(p []byte) (n int, err error) {
 		err = nil
 	}
 	return n, err
-}
-
-func checkSeparator(line string) bool {
-	if len(line) < 4 || line[0] != '#' {
-		return false
-	}
-	var hyphenCount int
-	for i := 1; i < len(line); i++ {
-		if line[i] == '-' {
-			hyphenCount++
-		} else {
-			break
-		}
-	}
-	return hyphenCount >= 3
-}
-
-func scanJoined() {
-	f, err := os.Open(JOINED)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-	scanner := NewDNoteScanner(f)
-	lib.ScanJoined(scanner)
-
 }
 
 func getNotes(pr lib.Period) ([]DNote, error) {
@@ -216,36 +188,3 @@ func getNotes(pr lib.Period) ([]DNote, error) {
 	return noteArray, nil
 }
 
-func joinByTitle(notes *[]DNote) (io.Reader, error) {
-	joinedFilePath := path.Join(JOINED)
-	f, err := os.OpenFile(joinedFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
-	}
-	defer f.Close()
-
-	var titles []string
-	for _, note := range *notes {
-		formattedName, err := note.Format()
-		if err != nil {
-			formattedName = note.GetPath()
-		}
-		titles = append(titles, formattedName)
-	}
-	joinedTitles := strings.Join(titles, "\n")
-
-	if _, err := f.Write([]byte(joinedTitles)); err != nil {
-		return nil, err
-	}
-
-	if err := lib.Edit(joinedFilePath); err != nil {
-		return nil, err
-	}
-
-	updatedContent, err := os.ReadFile(joinedFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read updated file: %w", err)
-	}
-
-	return bytes.NewReader(updatedContent), nil
-}

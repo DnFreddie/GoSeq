@@ -7,12 +7,9 @@ import (
 	"DnFreddie/goseq/cmd/git"
 	"DnFreddie/goseq/cmd/notes"
 	"DnFreddie/goseq/config"
-	"log"
 	"os"
-	"path"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -58,14 +55,6 @@ func init() {
 
 	cobra.OnInitialize(config.LoadConfig)
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf("Failed to get home directory: %v", err)
-	}
-	viper.Set("HOME", homeDir)
-	agenda := path.Join(homeDir,"/Documents/Agenda/")
-	viper.Set("AGENDA",agenda)
-	viper.Set("PROJECTS",agenda+"/projects")
 	addSubcommandsPallet()
 }
 

@@ -25,7 +25,6 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-
 type Project struct {
 	Name          string `json:"name"`
 	Owner         string `json:"owner"`
@@ -53,38 +52,18 @@ func (p Project) GetDate() time.Time {
 	return time
 }
 
-func (p Project)Delete() error{
-	return nil
-
-}
-type ProjectRetriver struct{}
-
-func NewDRetriver() *ProjectRetriver {
-	retriver := ProjectRetriver{}
-	return &retriver
-}
-
-func (d *ProjectRetriver) GetNotes(p lib.Period) ([]Project, error) {
-	notes, err := getSavedProjects()
-	fmt.Println(notes)
+func (p Project) Delete() error {
+	formated, err := p.Format()
 	if err != nil {
-		return notes, err
+		formated = p.GetPath()
 	}
-	return notes, nil
-}
-
-func (d *ProjectRetriver)JoinNotes(p lib.Period)error{
-
+	if err := os.Remove(p.GetPath()); err != nil {
+		return err
+	}
+	fmt.Println("Successfully deleted the Note", formated)
 	return nil
 
 }
-
-func (d *ProjectRetriver)Delete(p lib.Period)error{
-
-	return nil
-
-}
-
 
 func ProjectInit(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)

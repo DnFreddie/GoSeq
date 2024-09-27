@@ -6,11 +6,13 @@ package notes
 import (
 	"DnFreddie/goseq/lib"
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -46,7 +48,7 @@ deleted by the user
 			os.Exit(1)
 		}
 
-		if err := deleteByTitle(reader, &notes); err != nil {
+		if err := noteManager.DeleteByTitle(reader, &notes); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -110,4 +112,37 @@ func deleteByTitle(r io.Reader, notes *[]DNote) error {
 		lib.InColors(lib.Red, "Nothing to delete ...\n")
 	}
 	return nil
+}
+
+func joinByTitle(notes *[]DNote) (io.Reader, error) {
+	f, err := os.OpenFile(JOINED_DELETE, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer f.Close()
+
+	var titles []string
+	for _, note := range *notes {
+		formattedName, err := note.Format()
+		if err != nil {
+			formattedName = note.GetPath()
+		}
+		titles = append(titles, formattedName)
+	}
+	joinedTitles := strings.Join(titles, "\n")
+
+	if _, err := f.Write([]byte(joinedTitles)); err != nil {
+		return nil, err
+	}
+
+	if err := lib.Edit(JOINED_DELETE); err != nil {
+		return nil, err
+	}
+
+	updatedContent, err := os.ReadFile(JOINED_DELETE)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read updated file: %w", err)
+	}
+
+	return bytes.NewReader(updatedContent), nil
 }

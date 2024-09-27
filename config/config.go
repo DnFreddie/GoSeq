@@ -1,9 +1,11 @@
 package config
+
 import (
 	"bufio"
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -13,9 +15,15 @@ type Configuration struct {
 	GithubToken string `mapstructure:"token"`
 }
 
+func loadConstants(homeDir string){
+	viper.Set("HOME", homeDir)
+	agenda := path.Join(homeDir, "/Documents/Agenda/")
+	viper.Set("AGENDA", agenda)
+	viper.Set("PROJECTS", agenda+"/projects")
+
+}
 func LoadConfig() {
 	var config Configuration
-
 	viper.SetConfigName(".GoSeq")
 	viper.SetConfigType("yaml")
 
@@ -24,6 +32,7 @@ func LoadConfig() {
 		log.Fatalf("Unable to find home directory: %v", err)
 	}
 
+	loadConstants(homeDir)
 	viper.AddConfigPath(homeDir + "/.config/")
 	viper.AddConfigPath(homeDir)
 
@@ -63,4 +72,3 @@ func LoadConfig() {
 	}
 
 }
-
