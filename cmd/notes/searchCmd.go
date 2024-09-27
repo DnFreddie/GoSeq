@@ -37,7 +37,8 @@ It will then display the matches and allow you to open the desired note.`,
 			re = lib.Regex
 		}
 
-		notes, err := NewDRetriver().GetNotes(period)
+		noteManager := NewDailyNoteManager()
+		notes, err := noteManager.GetNotes(period)
 		if err != nil {
 			if !errors.Is(err, lib.NoNotesError{}) {
 				fmt.Println(err)

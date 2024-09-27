@@ -75,4 +75,5 @@ func addSubcommandsPallet() {
 	RootCmd.AddCommand(notes.NewCmd)
 	RootCmd.AddCommand(notes.SearchCmd)
 	RootCmd.AddCommand(notes.ListCmd)
+	RootCmd.AddCommand(notes.DeleteCmd)
 }

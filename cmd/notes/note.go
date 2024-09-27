@@ -45,6 +45,9 @@ func (d DNote) GetPath() string {
 func (d DNote) GetDate() time.Time {
 	return time.Time{}
 }
+func (d DNote) Delete() {
+
+}
 
 func (n *DNote) read() error {
 	f, err := os.Open(n.Path)
@@ -67,7 +70,7 @@ func (n *DNote) parseDate() string {
 	return formated_Date
 }
 
-func (n *DNote) writeNote() error {
+func (n DNote) Write() error {
 	AGENDA := viper.GetString("AGENDA")
 	if n.Path == "" && !n.Date.IsZero() {
 
@@ -112,46 +115,24 @@ func dailyNote() error {
 	now := time.Now()
 	date := now.Format(string(FileDate))
 	formattedTime := now.Format(string(FullDate))
-
 	var buffer bytes.Buffer
 	buffer.Write([]byte(formattedTime))
 	buffer.Write([]byte("\n" + strings.Repeat("-", len(formattedTime))))
 
 	dailyNote := path.Join(agenda, date+".md")
-
-	var originalContent []byte
-
 	if _, err := os.Stat(dailyNote); errors.Is(err, os.ErrNotExist) {
 		f, err := os.Create(dailyNote)
-		if err != nil {
-			return err
-		}
 		defer f.Close()
-		f.Write(buffer.Bytes())
-	} else {
-		content, err := os.ReadFile(dailyNote)
 		if err != nil {
 			return err
 		}
-		originalContent = content
-	}
 
+		f.Write(buffer.Bytes())
+	}
 	err := lib.Edit(dailyNote)
+
 	if err != nil {
 		return err
-	}
-
-	editedContent, err := os.ReadFile(dailyNote)
-	if err != nil {
-		return err
-	}
-
-	if bytes.Equal(originalContent, editedContent) {
-		err := os.Remove(dailyNote)
-		if err != nil {
-			panic("Failed to clean up daily note")
-		}
-
 	}
 
 	return nil

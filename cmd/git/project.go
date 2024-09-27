@@ -25,6 +25,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+
 type Project struct {
 	Name          string `json:"name"`
 	Owner         string `json:"owner"`
@@ -39,6 +40,11 @@ func (p Project) GetPath() string {
 	return p.NotePath
 }
 
+func (p Project) Write() error {
+
+	return nil
+}
+
 func (p Project) Format() (string, error) {
 	return path.Join(p.Owner, p.Name), nil
 }
@@ -47,6 +53,9 @@ func (p Project) GetDate() time.Time {
 	return time
 }
 
+func (p Project)Delete(){
+
+}
 type ProjectRetriver struct{}
 
 func NewDRetriver() *ProjectRetriver {
@@ -62,6 +71,19 @@ func (d *ProjectRetriver) GetNotes(p lib.Period) ([]Project, error) {
 	}
 	return notes, nil
 }
+
+func (d *ProjectRetriver)JoinNotes(p lib.Period)error{
+
+	return nil
+
+}
+
+func (d *ProjectRetriver)Delete(p lib.Period)error{
+
+	return nil
+
+}
+
 
 func ProjectInit(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)
@@ -80,7 +102,6 @@ func ProjectInit(localPath string) (*Project, error) {
 	var repoName string
 	var rOwner string
 
-	// Attempt to read the HEAD file
 	headFile, err := os.Open(HEAD)
 	if err != nil {
 		slog.Warn("Failed to open HEAD file:", "error", err)
@@ -93,7 +114,6 @@ func ProjectInit(localPath string) (*Project, error) {
 		}
 	}
 
-	// Attempt to read the config file
 	configFile, err := os.Open(CONFIG)
 	if err != nil {
 		slog.Warn("Failed to open config file:", "error", err)

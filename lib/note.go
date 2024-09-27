@@ -29,23 +29,20 @@ type SearchResult struct {
 	Formatted string
 }
 
-type NoteRetriever interface {
-	GetNotes(period Period) ([]Note, error)
-}
 
 type Note interface {
 	Searchable
 	GetDate() time.Time
+	Delete()
+	Write() error
+
 }
-
-
 
 type NoNotesError struct{}
 
 func (e NoNotesError) Error() string {
-    return "no notes available"
+	return "no notes available"
 }
-
 
 func SortNotes[T Note](notes []T) {
 	sort.Slice(notes, func(i, j int) bool {

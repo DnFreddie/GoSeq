@@ -9,13 +9,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
+	"unicode"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,21 +29,20 @@ var JoinCmd = &cobra.Command{
 	Long:  `Join notes any changes to the notes will be applaied to the notes (by defult from one week last 7 notes) `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var period lib.Period
-		dr := lib.ParseDateRange(periodVarCmd)
-		period.Range = dr
-		period.Amount = dateRangeVar
+		period := lib.Period{
+			Range:  lib.ParseDateRange(periodVarCmd),
+			Amount: dateRangeVar,
+		}
 
-		AGENDA := viper.GetString("AGENDA")
-
-		dirs, _ := os.ReadDir(AGENDA)
-		err := JoinNotes(&dirs, period)
+		noteManager := NewDailyNoteManager()
+		notes, err := noteManager.GetNotes(period)
+		reader ,err := noteManager.JoinNotesWithContents(&notes)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
-		ScanEverything()
+		scanner := NewDNoteScanner(reader)
+		lib.ScanJoined(scanner)
 	},
 }
 
@@ -75,53 +73,79 @@ const (
 	JOINED = "/tmp/.go_seq_joined.md"
 )
 
-func JoinNotes(entries *[]fs.DirEntry, period lib.Period) error {
-	join := path.Join(JOINED)
-
-	retriver := NewDRetriver()
-	notes, _ := retriver.GetNotes(period)
-
-	if len(notes) == 0 {
-		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
+func joinNotes(notes *[]DNote) (io.Reader, error) {
+	if len(*notes) == 0 {
+		return nil, fmt.Errorf("no DailyNotes found; try to create one with goseq new")
 	}
-	f, err := os.OpenFile(join, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+
+	joinedFilePath := path.Join(JOINED)
+	f, err := os.OpenFile(joinedFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer f.Close()
-	for _, v := range notes {
-		err := v.read()
-		if err != nil {
-			fmt.Println(err)
+
+	for _, v := range *notes {
+		if err := v.read(); err != nil {
+			log.Printf("Error reading note: %v", err)
 			continue
 		}
+
 		var buffer bytes.Buffer
 		buffer.Write(v.Contents)
 		buffer.WriteString("\n\n")
 		buffer.WriteString(string(EOF))
-		buffer.Write([]byte("\n\n"))
-		_, err = f.Write(buffer.Bytes())
-		if err != nil {
-			log.Println(err)
+		buffer.WriteString("\n\n")
+
+		if _, err := f.Write(buffer.Bytes()); err != nil {
+			log.Printf("Error writing to file: %v", err)
 		}
+
 		v.Contents = nil
 	}
-	err = lib.Edit(join)
-	if err != nil {
-		log.Fatal(err)
+
+	if err := lib.Edit(joinedFilePath); err != nil {
+		return nil, fmt.Errorf("error editing file: %w", err)
 	}
 
-	content, err := os.ReadFile(join)
+	readFile, err := os.Open(joinedFilePath)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error opening edited file: %w", err)
 	}
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		lines[i] = strings.TrimRight(line, " \t")
-	}
-	strippedContent := strings.Join(lines, "\n")
-	return os.WriteFile(join, []byte(strippedContent), 0644)
+
+	reader := bufio.NewReader(readFile)
+
+	return &trimReader{reader: reader, file: readFile}, nil
 }
+
+type trimReader struct {
+	reader *bufio.Reader
+	file   *os.File
+}
+
+func (tr *trimReader) Close() error {
+	return tr.file.Close()
+}
+
+func (tr *trimReader) Read(p []byte) (n int, err error) {
+	line, err := tr.reader.ReadBytes('\n')
+	if err != nil && err != io.EOF {
+		return 0, err
+	}
+
+	// Trim trailing whitespace
+	line = bytes.TrimRightFunc(line, unicode.IsSpace)
+	if len(line) > 0 || err == nil {
+		line = append(line, '\n')
+	}
+
+	n = copy(p, line)
+	if n < len(line) {
+		err = nil
+	}
+	return n, err
+}
+
 
 func checkSeparator(line string) bool {
 	if len(line) < 4 || line[0] != '#' {
@@ -138,89 +162,18 @@ func checkSeparator(line string) bool {
 	return hyphenCount >= 3
 }
 
-func ScanEverything() {
-	var wg sync.WaitGroup
-	ch := make(chan DNote)
+func scanJoined() {
 	f, err := os.Open(JOINED)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
+	scanner := NewDNoteScanner(f)
+	lib.ScanJoined(scanner)
 
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-		err := ScanAgenda(f, ch)
-		if err != nil {
-			log.Fatal("Error scanning agenda:", err)
-		}
-	}()
-
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	for note := range ch {
-		wg.Add(1)
-		note := note
-
-		go func(n DNote) {
-			defer wg.Done()
-
-			err := n.writeNote()
-			if err != nil {
-				fmt.Printf("The %v note has errored: %v\n", n.Path, err)
-			}
-		}(note)
-	}
-
-	wg.Wait()
 
 }
-
-func ScanAgenda(contents io.Reader, ch chan<- DNote) error {
-	var currentNote DNote
-	isCollecting := false
-	layout := string(FullDate)
-	s := bufio.NewScanner(contents)
-	for s.Scan() {
-		line := s.Text()
-		trimmedLine := strings.TrimSpace(line)
-		parsedTime, err := time.Parse(layout, trimmedLine)
-		if err == nil {
-			if isCollecting {
-				ch <- currentNote
-			}
-			currentNote = DNote{Date: parsedTime}
-			isCollecting = true
-			continue
-		}
-		if checkSeparator(trimmedLine) {
-			if isCollecting {
-				currentNote.Contents = bytes.TrimRight(currentNote.Contents, "\n")
-				ch <- currentNote
-				isCollecting = false
-			}
-			continue
-		}
-		if isCollecting {
-			currentNote.Contents = append(currentNote.Contents, line...)
-			currentNote.Contents = append(currentNote.Contents, '\n')
-		}
-	}
-	if isCollecting {
-		// Handle the last if there's no separator
-		currentNote.Contents = bytes.TrimRight(currentNote.Contents, "\n")
-		ch <- currentNote
-	}
-	return s.Err()
-}
-
-
-
-
 
 func getNotes(pr lib.Period) ([]DNote, error) {
 	var errMessages []string
@@ -231,7 +184,7 @@ func getNotes(pr lib.Period) ([]DNote, error) {
 	entries, err := os.ReadDir(AGENDA)
 	if err != nil {
 
-		return noteArray,&lib.NoNotesError{}
+		return noteArray, &lib.NoNotesError{}
 	}
 
 	now := time.Now()
