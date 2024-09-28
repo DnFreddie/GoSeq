@@ -26,6 +26,8 @@ Chagnes to the file will delete the associated projects.
 			Amount: 0,
 		}
 		projectManager := NewProjectManager()
+		locker := lib.NewFileLocker(lib.DeleteProjectLock,"Delete Projects")
+		
 		projects, err := projectManager.GetNotes(period)
 		if err != nil {
 			if errors.Is(err, lib.NoNotesError{}) {
@@ -35,7 +37,13 @@ Chagnes to the file will delete the associated projects.
 
 			fmt.Println(err)
 
+
 		}
+		if err:= locker.Lock();err!= nil{
+		fmt.Println(err)
+			os.Exit(1)
+		}
+		defer locker.Unlock()
 		reader, err := projectManager.JoinNotesByTitle(&projects)
 		if err != nil {
 			fmt.Println(err)

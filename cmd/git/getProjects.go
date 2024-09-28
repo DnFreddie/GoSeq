@@ -135,7 +135,7 @@ func getSavedProjects()([]Project,error){
 		return projecArray,err
 	}
 	if len(projecArray) == 0 {
-		return projecArray, fmt.Errorf("The meta file is empty add the project to fix this\n")
+		return projecArray, lib.NoNotesError{}
 	}
 	return projecArray,nil
 }

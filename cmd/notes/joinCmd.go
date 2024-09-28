@@ -40,13 +40,22 @@ var JoinCmd = &cobra.Command{
 			Amount: dateRangeVar,
 		}
 
+		locker := lib.NewFileLocker(lib.JoinLock, "Join Notes")
 		noteManager := NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
+		if err := locker.Lock(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+
+		}
+		defer locker.Unlock()
+
 		reader, err := noteManager.JoinNotesWithContents(&notes)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
 		scanner := NewDNoteScanner(reader)
 		lib.ScanJoined(scanner)
 	},
@@ -187,4 +196,3 @@ func getNotes(pr lib.Period) ([]DNote, error) {
 
 	return noteArray, nil
 }
-

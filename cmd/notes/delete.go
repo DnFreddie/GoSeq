@@ -33,6 +33,8 @@ deleted by the user
 		}
 		noteManager := NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
+
+		locker :=  lib.NewFileLocker(lib.DeleteLock,"Delete Notes")
 		if err != nil {
 			if errors.Is(err, lib.NoNotesError{}) {
 				fmt.Println(err)
@@ -42,6 +44,12 @@ deleted by the user
 			fmt.Println(err)
 
 		}
+		if err := locker.Lock(); err!= nil{
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer locker.Unlock()
+
 		reader, err := noteManager.JoinNotesByTitle(&notes)
 		if err != nil {
 			fmt.Println(err)

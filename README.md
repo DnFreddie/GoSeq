@@ -41,7 +41,6 @@ goseq list
 ```bash
 goseq join -r <week|day|year|all> -t 3
 ```
-
 ---
 
 #### Search Within Notes
@@ -188,7 +187,18 @@ For help with any commands, simply run `goseq` without arguments:
 ```bash
 goseq
 ```
+### Lock ERROR
+GoSeq uses lock files so  they are stored in /tmp/
 
+if the program stops with the message `log not aquaierd`
+
+after the crach u have to delete it mannualy or reboot the system 
+
+**Here are the names of the lock files**
+- `/tmp/.goseq_delete.lock`
+- `/tmp/.goseq_project_delete.lock`
+- `/tmp/.goseq_join.lock`
+- `/tmp/.goseq_project_join.lock`
 ---
 
 ## Build

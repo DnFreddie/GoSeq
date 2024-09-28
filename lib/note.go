@@ -41,7 +41,7 @@ type Note interface {
 type NoNotesError struct{}
 
 func (e NoNotesError) Error() string {
-	return "no notes available"
+	return "No notes available ..."
 }
 
 func SortNotes[T Note](notes []T) {
