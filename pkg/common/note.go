@@ -1,8 +1,8 @@
 package common
 
 import (
-	"DnFreddie/goseq/pkg/grep"
-	"DnFreddie/goseq/pkg/interfaces"
+	"github.com/DnFreddie/goseq/pkg/grep"
+	"github.com/DnFreddie/goseq/pkg/interfaces"
 	"errors"
 	"fmt"
 	"sort"

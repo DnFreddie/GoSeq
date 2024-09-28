@@ -4,9 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"DnFreddie/goseq/cmd/git"
-	"DnFreddie/goseq/cmd/notes"
-	"DnFreddie/goseq/config"
+	"github.com/DnFreddie/goseq/cmd/git"
+	"github.com/DnFreddie/goseq/cmd/notes"
+	"github.com/DnFreddie/goseq/config"
 	"os"
 
 	"github.com/spf13/cobra"

@@ -1,7 +1,7 @@
 package common
 
 import (
-	"DnFreddie/goseq/pkg/grep"
+	"github.com/DnFreddie/goseq/pkg/grep"
 	"bufio"
 	"fmt"
 	"os"

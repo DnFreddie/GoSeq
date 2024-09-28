@@ -1,8 +1,8 @@
 package project
 
 import (
-	"DnFreddie/goseq/pkg/common"
-	"DnFreddie/goseq/pkg/terminal"
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"encoding/json"

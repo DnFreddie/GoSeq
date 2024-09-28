@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/internal/project"
+	"github.com/DnFreddie/goseq/internal/project"
 	"log"
 
 	"github.com/spf13/cobra"

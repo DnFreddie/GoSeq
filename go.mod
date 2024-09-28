@@ -1,4 +1,4 @@
-module DnFreddie/goseq
+module github.com/DnFreddie/goseq
 
 go 1.23.0
 

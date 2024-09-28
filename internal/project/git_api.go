@@ -1,8 +1,8 @@
 package project
 
 import (
-	"DnFreddie/goseq/pkg/terminal"
-	"DnFreddie/goseq/pkg/todo"
+	"github.com/DnFreddie/goseq/pkg/terminal"
+	"github.com/DnFreddie/goseq/pkg/todo"
 	"bytes"
 	"context"
 	"encoding/json"

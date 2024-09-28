@@ -4,9 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/internal/project"
-	"DnFreddie/goseq/pkg/common"
-	"DnFreddie/goseq/pkg/locker"
+	"github.com/DnFreddie/goseq/internal/project"
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/locker"
 
 	"errors"
 	"fmt"
