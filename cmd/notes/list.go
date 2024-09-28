@@ -5,6 +5,7 @@ package notes
 
 import (
 	"DnFreddie/goseq/internal/notes"
+	"DnFreddie/goseq/pkg/common"
 	"fmt"
 	"os"
 
@@ -19,8 +20,12 @@ var ListCmd = &cobra.Command{
 	List all notes in agenda and lets you chose the one u want then it opens it and applay the changes 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := notes.ChoseNote()
-		if err != nil{
+		notesArray,err  := notes.NewDailyNoteManager().GetNotes(common.Period{Range: common.All,Amount: 0})
+		if err!= nil{
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	if 	err = notes.ChoseNote(&notesArray);err!= nil{
 
 			fmt.Println(err)
 			os.Exit(1)

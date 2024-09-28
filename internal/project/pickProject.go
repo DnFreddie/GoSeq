@@ -113,34 +113,34 @@ func ListProjects(pt string) ([]Project, error) {
 	return projects, nil
 
 }
-
 func ReadRecent(list bool) error {
-
-	if !list {
-		f, err := os.Open(ENV_VAR)
-		if err != nil {
-			fmt.Println("No recent Projects found, listing added projects instead")
-			return ReadRecent(true)
-		}
-		defer f.Close()
-
-		p, err := io.ReadAll(f)
-		if err != nil {
-			log.Println("Failed to read recent project, listing recent projects instead")
-			return ReadRecent(true)
-		}
-
-		common.Edit(string(p) + ".md")
-		return nil
-	}
-
-	projecArray, err := getSavedProjects()
-	if err != nil {
-		return err
-	}
-
-	pr := choseProject(&projecArray)
-	pr.EditProject()
-	return nil
-
+    if !list {
+        p, err := readRecentProject()
+        if err != nil {
+            fmt.Println("No recent projects found, listing added projects instead")
+            return ReadRecent(true)
+        }
+        return common.Edit(string(p) + ".md")
+    }
+    
+    projects, err := getSavedProjects()
+    if err != nil {
+        return err
+    }
+    return choseProject(&projects).EditProject()
 }
+
+func readRecentProject() ([]byte, error) {
+    if _, err := os.Stat(ENV_VAR); os.IsNotExist(err) {
+        return nil, err
+    }
+    
+    f, err := os.Open(ENV_VAR)
+    if err != nil {
+        return nil, err
+    }
+    defer f.Close()
+    
+    return io.ReadAll(f)
+}
+

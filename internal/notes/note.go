@@ -40,6 +40,7 @@ func (d DNote) Format() (string, error) {
 	}
 	return date.Format(string(FullDate)), nil
 }
+
 func (d DNote) GetPath() string {
 	return d.Path
 }
@@ -160,62 +161,40 @@ func checkAgenda() string {
 
 	return agenda
 }
-func ChoseNote() error {
+func ChoseNote(notesArray *[]DNote) error {
 
-	AGENDA := viper.GetString("AGENDA")
-	entries, err := os.ReadDir(AGENDA)
-
-	if err != nil {
+	var names []map[string]*DNote
+	if len(*notesArray) == 0 {
 		return fmt.Errorf("No DailyNotes found try to create one with goseq new")
 	}
+	for _, entry := range *notesArray {
 
-	var names []map[string]time.Time
-	for _, entry := range entries {
-		rawDate, err := isNote(entry)
-
+		dateMap := make(map[string]*DNote)
+		fmtTime, err := entry.Format()
 		if err != nil {
-			continue
+			fmtTime = entry.GetPath()
 		}
-
-		dateMap := make(map[string]time.Time)
-		fmtTime := rawDate.Format(string(FullDate))
-		dateMap[fmtTime] = rawDate
+		dateMap[fmtTime] = &entry
 		names = append(names, dateMap)
 
-	}
-	if len(names) == 0 {
-		fmt.Errorf("No DailyNotes found try to create one with goseq new")
-		return err
 	}
 
 	choice, err := terminal.RunTerm(names)
 	if err != nil {
-		return err
 
+		return err
 	}
+
 	chosenNote := &DNote{}
 	for _, v := range choice {
-		*chosenNote = DNote{
-			Path: path.Join(AGENDA, v.Format(string(FileDate)+".md")),
-			Date: v,
-		}
+		*chosenNote = *v
 	}
+
 	err = common.Edit(chosenNote.Path)
-	if err != nil {
-		return nil
-	}
-	return nil
-}
-func isNote(entry os.DirEntry) (time.Time, error) {
-	var rawDate time.Time
-	if entry.IsDir() {
-		return rawDate, fmt.Errorf("Not a file so not a note")
-	}
-	dateStirng := strings.Replace(entry.Name(), ".md", "", -1)
-	rawDate, err := time.Parse(string(FileDate), dateStirng)
 
 	if err != nil {
-		return rawDate, err
+
+		return err
 	}
-	return rawDate, nil
+	return nil
 }

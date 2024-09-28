@@ -269,13 +269,13 @@ func projectExists(projects []Project, newProject *Project) bool {
 	return false
 }
 
-func (p *Project) EditProject() {
+func (p *Project) EditProject() error {
 	PROJECTS := viper.GetString("PROJECTS")
 	pDir := path.Join(PROJECTS, p.Owner)
 	err := os.MkdirAll(pDir, 0755)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	project := path.Join(pDir, p.Name+".md")
 
@@ -287,7 +287,7 @@ func (p *Project) EditProject() {
 
 		props := p.printProperites()
 		if _, err = f.Write([]byte(props)); err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 	}
@@ -297,8 +297,11 @@ func (p *Project) EditProject() {
 		time.Sleep(3 * time.Second)
 	}
 
-	common.Edit(project)
+	if err := common.Edit(project); err!= nil{
+		return err
+	}
 
+	return nil
 }
 
 func (p *Project) printProperites() string {
@@ -313,7 +316,7 @@ Url: %v
 
 func (pr *Project) WalkProject() error {
 	if pr.Location == "" {
-		log.Fatal("Failed to find the path to the Project")
+		log.Panic("Failed to find the path to the Project")
 	}
 	// Change the directory because else git-ls will fail
 	err := os.Chdir(pr.Location)
