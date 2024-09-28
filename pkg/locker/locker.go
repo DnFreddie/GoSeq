@@ -1,4 +1,4 @@
-package lib
+package locker
 
 import (
 	"errors"
@@ -15,12 +15,6 @@ type Locker interface {
 
 type LockFile string
 
-const (
-	DeleteLock LockFile = "/tmp/.goseq_delete.lock"
-	DeleteProjectLock LockFile = "/tmp/.goseq_project_delete.lock"
-	JoinLock   LockFile = "/tmp/.goseq_join.lock"
-	JoinProjectLock   LockFile = "/tmp/.goseq_project_join.lock"
-)
 
 type FileLocker struct {
 	LockFile string
@@ -73,3 +67,4 @@ func createLockFile(fpath string) error {
 
 	return nil
 }
+

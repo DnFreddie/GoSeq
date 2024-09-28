@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
+	"DnFreddie/goseq/internal/project"
 	"fmt"
 	"log/slog"
 	"os"
@@ -26,18 +27,18 @@ And the for the saved.You can see what Projects did u saved via the git list com
 		//github.WalkProject("/home/rocky/github.com/DnFreddie/rlbl")
 		PROJECTS := viper.GetString("PROJECTS")
 		if ProjectPath != "" {
-			p := PickProject(ProjectPath)
+			p := project.PickProject(ProjectPath)
 			pAth := path.Join(p.Owner, p.Name)
 
 			location := path.Join(PROJECTS, pAth)
-			err := os.WriteFile(ENV_VAR, []byte(location), 0644)
+			err := os.WriteFile(project.ENV_VAR, []byte(location), 0644)
 			if err != nil {
 				slog.Warn("Failed to read to the TMP file", "err", err)
 			}
 			return
 		}
 		if recent  {
-			if err := ReadRecent(false);err !=nil{
+			if err := project.ReadRecent(false);err !=nil{
 				fmt.Println(err)
 				os.Exit(1)
 			}

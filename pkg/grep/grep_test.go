@@ -1,4 +1,4 @@
-package lib
+package grep
 
 import (
 	"regexp"
@@ -52,3 +52,4 @@ func TestSearchFunctions(t *testing.T) {
 		})
 	}
 }
+

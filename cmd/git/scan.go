@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
+	"DnFreddie/goseq/internal/project"
 	"context"
 	"fmt"
 	"os"
@@ -19,7 +20,7 @@ var ScanCmd = &cobra.Command{
 	Long:  `Findes the project and prints all the todos founded inside the project/s `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if ProjectPath != "" {
-			prArray, err := ListProjects(ProjectPath)
+			prArray, err := project.ListProjects(ProjectPath)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
@@ -31,7 +32,7 @@ var ScanCmd = &cobra.Command{
 
 			for _, v := range prArray {
 				wg.Add(1)
-				go func(repo Project) {
+				go func(repo project.Project) {
 					sem.Acquire(ctx, 1)
 					defer wg.Done()
 					sem.Release(1)
@@ -45,7 +46,7 @@ var ScanCmd = &cobra.Command{
 			wg.Wait()
 			if len(prArray)!= 0 && add {
 				for _,p:= range prArray{
-					p.saveProject()
+					p.SaveProject()
 				}
 			}
 

@@ -4,7 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"log"
+	"DnFreddie/goseq/internal/notes"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -16,10 +18,11 @@ var NewCmd = &cobra.Command{
 	Long: `Create a new daily note or open an exsisitng one for today
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := dailyNote()
+		err := notes.DailyNote()
 		if err != nil{
 
-		log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 	},

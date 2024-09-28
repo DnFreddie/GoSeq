@@ -1,7 +1,9 @@
-package git
+package project
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/terminal"
+	"DnFreddie/goseq/pkg/todo"
 	"bufio"
 	"bytes"
 	"context"
@@ -30,7 +32,7 @@ type Project struct {
 	Owner         string `json:"owner"`
 	DefaultBranch string `json:"default_branch"`
 	Url           string `json:"repo_url"`
-	Issues        []map[string][]lib.Todo
+	Issues        []map[string][]todo.Todo
 	Location      string `json:"location"`
 	NotePath      string `json:"note_path"`
 }
@@ -65,7 +67,7 @@ func (p Project) Delete() error {
 
 }
 
-func ProjectInit(localPath string) (*Project, error) {
+func NewProject(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)
 	if err != nil {
 		slog.Error("Doesn't exist:", "path", path.Base(localPath))
@@ -129,9 +131,9 @@ func ProjectInit(localPath string) (*Project, error) {
 
 func (p *Project) PrintTodos() {
 	message := fmt.Sprintf("%v/%v\n", p.Owner, p.Name)
-	lib.InColors(lib.Cyan, message)
+	terminal.InColors(terminal.Cyan, message)
 	if len(p.Issues) == 0 {
-		lib.InColors(lib.Red, "No TODOS found\n")
+		terminal.InColors(terminal.Red, "No TODOS found\n")
 
 	} else {
 
@@ -147,17 +149,17 @@ func (p *Project) PrintTodos() {
 	fmt.Println("------------------------------")
 }
 
-func printSortedTodos(issueKey string, todos []lib.Todo) {
+func printSortedTodos(issueKey string, todos []todo.Todo) {
 
 	sort.Slice(todos, func(i, j int) bool {
 		return todos[i].Urgency > todos[j].Urgency
 
 	})
 
-	lib.InColors(lib.Blue, fmt.Sprintf("Location: %s\n", issueKey))
+	terminal.InColors(terminal.Blue, fmt.Sprintf("Location: %s\n", issueKey))
 	for _, todo := range todos {
 		title := fmt.Sprintf("TODO: %v\n", todo.Title)
-		lib.InColors(lib.Green, title)
+		terminal.InColors(terminal.Green, title)
 		fmt.Printf("Line: %d\nUrgency: %d\n\n", todo.Line, todo.Urgency)
 	}
 
@@ -199,7 +201,7 @@ func makeAbsolute(fPath string) (string, error) {
 	return dest, nil
 }
 
-func (p *Project) saveProject() error {
+func (p *Project) SaveProject() error {
 	PROJECTS := viper.GetString("PROJECTS")
 	var projects []Project
 
@@ -290,12 +292,12 @@ func (p *Project) EditProject() {
 
 	}
 	p.NotePath = project
-	if err := p.saveProject(); err != nil {
+	if err := p.SaveProject(); err != nil {
 		fmt.Errorf("Failed to save the project u have to rerwrite to be able to open the noptes err:%v\n", err)
 		time.Sleep(3 * time.Second)
 	}
 
-	lib.Edit(project)
+	common.Edit(project)
 
 }
 
@@ -339,7 +341,7 @@ func (pr *Project) WalkProject() error {
 	var wg sync.WaitGroup
 	ctx := context.Background()
 	var sem = semaphore.NewWeighted(int64(20))
-	ch := make(chan map[string][]lib.Todo, 10)
+	ch := make(chan map[string][]todo.Todo, 10)
 
 	go func() {
 		wg.Wait()
@@ -357,7 +359,7 @@ func (pr *Project) WalkProject() error {
 			todoArray := walkFile(ab)
 
 			if todoArray != nil && len(todoArray) > 0 {
-				todosMap := make(map[string][]lib.Todo)
+				todosMap := make(map[string][]todo.Todo)
 				todosMap[ab] = todoArray
 				ch <- todosMap
 			}
@@ -371,7 +373,7 @@ func (pr *Project) WalkProject() error {
 	return nil
 }
 
-func walkFile(p string) []lib.Todo {
+func walkFile(p string) []todo.Todo {
 	info, err := os.Stat(p)
 	if err != nil {
 		//fmt.Println(err)
@@ -389,9 +391,9 @@ func walkFile(p string) []lib.Todo {
 	}
 	defer f.Close()
 
-	ch := make(chan lib.Todo)
+	ch := make(chan todo.Todo)
 	var wg sync.WaitGroup
-	var TODOS []lib.Todo
+	var TODOS []todo.Todo
 
 	go func() {
 		for todo := range ch {
@@ -411,7 +413,7 @@ func walkFile(p string) []lib.Todo {
 		wg.Add(1)
 		go func(line string, index int) {
 			defer wg.Done()
-			todo := lib.ContainsPattern(line, index, lib.TODO)
+			todo := todo.ContainsPattern(line, index, todo.TODO)
 			if todo != nil {
 				ch <- *todo
 			}

@@ -4,7 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/internal/notes"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/grep"
 	"errors"
 	"fmt"
 	"os"
@@ -23,31 +25,31 @@ var SearchCmd = &cobra.Command{
 It will then display the matches and allow you to open the desired note.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var re lib.GrepFlag
-		var insencitive lib.GrepFlag
-		period := lib.Period{
-			Range:  lib.All,
+		var re grep.GrepFlag
+		var insencitive grep.GrepFlag
+		period := common.Period{
+			Range:  common.All,
 			Amount: 0,
 		}
 		if iname {
-			insencitive = lib.ToLower
+			insencitive = grep.ToLower
 
 		}
 		if regex {
-			re = lib.Regex
+			re = grep.Regex
 		}
 
-		noteManager := NewDailyNoteManager()
+		noteManager := notes.NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
 		if err != nil {
-			if !errors.Is(err, lib.NoNotesError{}) {
+			if !errors.Is(err, common.NoNotesError{}) {
 				fmt.Println(err)
 				os.Exit(1)
 			} else {
 				fmt.Println(err)
 			}
 		}
-		if err := lib.Search(notes, strings.Join(args, " "), re|insencitive); err != nil {
+		if err := common.Search(notes, strings.Join(args, " "), re|insencitive); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

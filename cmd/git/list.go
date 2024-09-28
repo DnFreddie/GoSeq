@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
+	"DnFreddie/goseq/internal/project"
 	"fmt"
 	"os"
 
@@ -17,7 +18,7 @@ var ListCmd = &cobra.Command{
 	Long: `It lists the projects that was previously added and lets you chose one.
 The paths are located in $HOME/Documents/Agenda/projects/.PROJECTS_META.json `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := ReadRecent(true); err != nil {
+		if err := project.ReadRecent(true); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

@@ -1,7 +1,8 @@
-package git
+package project
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/pkg/terminal"
+	"DnFreddie/goseq/pkg/todo"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -19,8 +20,8 @@ type gitIssue struct {
 }
 
 func (p *Project) ApplayIssues(token string, existIssue *[]gitIssue) {
-	var newIssues []lib.Todo
-	var oldIssues []lib.Todo
+	var newIssues []todo.Todo
+	var oldIssues []todo.Todo
 
 	for _, issueMap := range p.Issues {
 		for _, todos := range issueMap {
@@ -50,44 +51,45 @@ func (p *Project) ApplayIssues(token string, existIssue *[]gitIssue) {
 	successCount := 0
 	failedIssues := make(map[string]error)
 
-	for _, todo := range newIssues {
+	for _, v := range newIssues {
 		wg.Add(1)
-		go func(todo lib.Todo) {
+		go func( t todo.Todo) {
 			defer wg.Done()
-			err := createGitHubIssue(todo, token, p.Owner, p.Name)
+			err := createGitHubIssue[todo.Todo](t, token, p.Owner, p.Name)
+
 			mu.Lock()
 			defer mu.Unlock()
 			if err != nil {
-				failedIssues[todo.Title] = err
+				failedIssues[t.Title] = err
 			} else {
 				successCount++
 			}
-		}(todo)
+		}(v)
 	}
 	wg.Wait()
 
 	// Summary
 	fmt.Printf("\nExecution Summary:\n")
-	lib.InColors(lib.Green, fmt.Sprintf("Successfully posted issues: %d\n", successCount))
+	terminal.InColors(terminal.Green, fmt.Sprintf("Successfully posted issues: %d\n", successCount))
 	if len(failedIssues) > 0 {
 		fmt.Printf("Failed to post %d issues:\n", len(failedIssues))
 		for title, err := range failedIssues {
-			lib.InColors(lib.Red, fmt.Sprintf(" - %s: %v\n", title, err))
+			terminal.InColors(terminal.Red, fmt.Sprintf(" - %s: %v\n", title, err))
 		}
 	} else {
 		fmt.Println("No issues failed to post.")
 	}
 }
 
-func goseqPlan(newIssues []lib.Todo, oldIssues []lib.Todo) error {
+func goseqPlan(newIssues []todo.Todo, oldIssues []todo.Todo) error {
 	fmt.Println("\nPlan:")
 	fmt.Printf("New issues to be created: %d\n", len(newIssues))
 	for _, issue := range newIssues {
-		lib.InColors(lib.Green, fmt.Sprintf(" + %s\n", issue.Title))
+		terminal.InColors(terminal.Green, fmt.Sprintf(" + %s\n", issue.Title))
 	}
 	fmt.Printf("\nExisting issues (no changes): %d\n", len(oldIssues))
 	for _, issue := range oldIssues {
-		lib.InColors(lib.Red, fmt.Sprintf(" = %s\n", issue.Title))
+		terminal.InColors(terminal.Red, fmt.Sprintf(" = %s\n", issue.Title))
 	}
 	if len(newIssues) == 0 {
 		fmt.Println("No new issues exiting...")

@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
+	"DnFreddie/goseq/internal/project"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -24,7 +25,7 @@ var PostCmd = &cobra.Command{
 			log.Fatal("Failed to found the Github Api token")
 		}
 		if ProjectPath != "" {
-			p, err := ProjectInit(ProjectPath)
+			p, err := project.NewProject(ProjectPath)
 			if err != nil {
 				log.Fatal(err)
 			}

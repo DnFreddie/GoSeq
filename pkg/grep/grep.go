@@ -1,4 +1,4 @@
-package lib
+package grep
 
 import (
 	"bufio"
@@ -6,11 +6,17 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 
 	"golang.org/x/sync/semaphore"
+)
+
+const (
+	Green = "\033[32m"
+	Blue  = "\033[34m"
+	Reset = "\033[0m"
+	Red   = "\033[31m"
 )
 
 type GrepFlag uint
@@ -31,13 +37,10 @@ type Searchable interface {
 	Format() (string, error)
 }
 
-
-
-
-func GrepFile[T Note](searchF T, pat []byte, flag GrepFlag) ([]GrepMatch, error) {
+func GrepFile[T Searchable](searchF T, pat []byte, flag GrepFlag) ([]GrepMatch, error) {
 	var matches []GrepMatch
 	var index int64
-	f, err := os.Open(searchF.GetPath()) 
+	f, err := os.Open(searchF.GetPath())
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %w", err)
 	}
@@ -73,9 +76,9 @@ func GrepFile[T Note](searchF T, pat []byte, flag GrepFlag) ([]GrepMatch, error)
 		}
 
 		if matched {
-			formated, err := searchF.Format() 
+			formated, err := searchF.Format()
 			if err != nil {
-				formated = searchF.GetPath() 
+				formated = searchF.GetPath()
 			}
 			match := GrepMatch{
 				Line:     index,
@@ -94,7 +97,6 @@ func GrepFile[T Note](searchF T, pat []byte, flag GrepFlag) ([]GrepMatch, error)
 	}
 	return matches, nil
 }
-
 
 func highlightMatch(text, match string) string {
 	redColor := string(Red)
@@ -128,7 +130,7 @@ func searchToLower(line, pattern string) (bool, string) {
 	return false, ""
 }
 
-func GrepMulti [T Note](searches []T, toParse string, flag GrepFlag) ([]map[string][]GrepMatch, error) {
+func GrepMulti[T Searchable](searches []T, toParse string, flag GrepFlag) ([]map[string][]GrepMatch, error) {
 	var wg sync.WaitGroup
 	sem := semaphore.NewWeighted(10)
 	results := make([]map[string][]GrepMatch, 0)
@@ -162,46 +164,12 @@ func GrepMulti [T Note](searches []T, toParse string, flag GrepFlag) ([]map[stri
 	return results, nil
 }
 
-func OpenMatched(matchArray *[]map[string][]GrepMatch) error {
-	formatMatches(matchArray)
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Choose the note to open:")
-	fmt.Print("#? ")
-	for scanner.Scan() {
-		text := scanner.Text()
-		if text == "" {
-			break
-		}
-		i, err := strconv.Atoi(text)
-		if err != nil {
-			fmt.Println("Invalid input. Please enter a number.")
-			fmt.Print("#? ")
-			continue
-		}
-		if i < 1 || i > len(*matchArray) {
-			fmt.Println("Unable to choose a note")
-			fmt.Print("#? ")
-			continue
-		}
-		for k := range (*matchArray)[i-1] {
-			if err := Edit(k); err != nil {
-				return fmt.Errorf("error editing file %s: %w", k, err)
-			}
-		}
-		break
-	}
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("scanner error: %w", err)
-	}
-	return nil
-}
-
-func formatMatches(notes *[]map[string][]GrepMatch) {
-	for i, note := range *notes {
-		for _, matches := range note {
+func FormatMatches(matches *[]map[string][]GrepMatch) {
+	for i, m := range *matches {
+		for _, matches := range m {
 			for _, match := range matches {
-				InColors(Green, fmt.Sprintf("%d. ", i+1))
-				InColors(Blue, match.Formated+"\n")
+				fmt.Printf("%s%d.%s ", Green, i+1, Reset)
+				fmt.Printf("%s%s%s\n", Blue, match.Formated, Reset)
 				fmt.Printf("Line:%d %s\n", match.Line, match.Match)
 			}
 		}

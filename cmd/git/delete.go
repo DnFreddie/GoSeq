@@ -4,13 +4,18 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/internal/project"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/locker"
+
 	"errors"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+const DeleteProjectLock locker.LockFile = "/tmp/.goseq_project_delete.lock"
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
@@ -21,26 +26,25 @@ Chagnes to the file will delete the associated projects.
  `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		period := lib.Period{
-			Range:  lib.All,
+		period := common.Period{
+			Range:  common.All,
 			Amount: 0,
 		}
-		projectManager := NewProjectManager()
-		locker := lib.NewFileLocker(lib.DeleteProjectLock,"Delete Projects")
-		
+		projectManager := project.NewProjectManager()
+		locker := locker.NewFileLocker(DeleteProjectLock, "Delete Projects")
+
 		projects, err := projectManager.GetNotes(period)
 		if err != nil {
-			if errors.Is(err, lib.NoNotesError{}) {
+			if errors.Is(err, common.NoNotesError{}) {
 				fmt.Println(err)
 				os.Exit(1)
 			}
 
 			fmt.Println(err)
 
-
 		}
-		if err:= locker.Lock();err!= nil{
-		fmt.Println(err)
+		if err := locker.Lock(); err != nil {
+			fmt.Println(err)
 			os.Exit(1)
 		}
 		defer locker.Unlock()

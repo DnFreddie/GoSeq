@@ -1,8 +1,7 @@
-package lib
+package common
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 )
@@ -23,32 +22,6 @@ type Period struct {
 	Amount int
 }
 
-type SearchResult struct {
-	Note      Note
-	Matches   []GrepMatch
-	Formatted string
-}
-
-
-type Note interface {
-	Searchable
-	GetDate() time.Time
-	Delete() error
-	Write() error
-
-}
-
-type NoNotesError struct{}
-
-func (e NoNotesError) Error() string {
-	return "No notes available ..."
-}
-
-func SortNotes[T Note](notes []T) {
-	sort.Slice(notes, func(i, j int) bool {
-		return notes[i].GetDate().Before(notes[j].GetDate())
-	})
-}
 func ParseDateRange(input string) DateRange {
 
 	switch strings.ToLower(input) {
@@ -67,28 +40,6 @@ func ParseDateRange(input string) DateRange {
 		return Week
 	}
 }
-
-func Search[T Note](notes []T, toParse string, flag GrepFlag) error {
-	if len(notes) == 0 {
-		return fmt.Errorf("No items found")
-	}
-	if toParse == "" {
-		return fmt.Errorf("No pattern to look for ")
-	}
-	matches, err := GrepMulti(notes, toParse, flag)
-	if err != nil {
-		return err
-	}
-
-	OpenMatched(&matches)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func DateInRange(today time.Time, r Period, date time.Time) bool {
 	var searchPattern time.Time
 

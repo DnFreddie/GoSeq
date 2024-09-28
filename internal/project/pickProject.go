@@ -1,18 +1,16 @@
-package git
+package project
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/terminal"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"sync"
 
-	"github.com/spf13/viper"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -48,7 +46,7 @@ func choseProject(pr *[]Project) *Project {
 		newOption[fmt.Sprintf("%v/%v", v.Owner, v.Name)] = &v
 		options = append(options, newOption)
 	}
-	choice, err := lib.RunTerm(options)
+	choice, err := terminal.RunTerm(options)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,7 +90,7 @@ func ListProjects(pt string) ([]Project, error) {
 				defer wg.Done()
 
 				defer sem.Release(1)
-				p, err := ProjectInit(repoPath)
+				p, err := NewProject(repoPath)
 				if err != nil {
 					return
 				}
@@ -108,38 +106,13 @@ func ListProjects(pt string) ([]Project, error) {
 	}
 
 	wg.Wait()
-	if len(projects)==0{
-		return projects,fmt.Errorf("No Projects Found")
+	if len(projects) == 0 {
+		return projects, fmt.Errorf("No Projects Found")
 	}
 
 	return projects, nil
 
 }
-
-
-func getSavedProjects()([]Project,error){
-	PROJECTS := viper.GetString("PROJECTS")
-	var projecArray []Project
-	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
-
-	if err != nil {
-		return projecArray, fmt.Errorf("The meta file is empty add the project to fix this\n\ngit -p <path/to/project/\n")
-	}
-
-	contents, err := io.ReadAll(f)
-	if err != nil {
-		return projecArray,err
-	}
-	err = json.Unmarshal(contents, &projecArray)
-	if err != nil {
-		return projecArray,err
-	}
-	if len(projecArray) == 0 {
-		return projecArray, lib.NoNotesError{}
-	}
-	return projecArray,nil
-}
-
 
 func ReadRecent(list bool) error {
 
@@ -157,12 +130,12 @@ func ReadRecent(list bool) error {
 			return ReadRecent(true)
 		}
 
-		lib.Edit(string(p) + ".md")
+		common.Edit(string(p) + ".md")
 		return nil
 	}
 
-	projecArray,err:= getSavedProjects()
-	if err !=  nil{
+	projecArray, err := getSavedProjects()
+	if err != nil {
 		return err
 	}
 

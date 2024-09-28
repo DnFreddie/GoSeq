@@ -1,7 +1,8 @@
-package git
+package project
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -29,7 +30,7 @@ func NewProjectManager() *ProjectManager {
 	return &retriver
 }
 
-func (pm *ProjectManager) GetNotes(p lib.Period) ([]Project, error) {
+func (pm *ProjectManager) GetNotes(p common.Period) ([]Project, error) {
 
 	return getSavedProjects()
 }
@@ -53,32 +54,29 @@ func (pm *ProjectManager) DeleteByTitle(r io.Reader, n *[]Project) error {
 
 }
 
-type ProjectScanner struct {
-	scanner     *bufio.Scanner
-	currentNote Project
-	err         error
-}
+func getSavedProjects()([]Project,error){
+	PROJECTS := viper.GetString("PROJECTS")
+	var projecArray []Project
+	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
 
-func NewDNoteScanner(r io.Reader) *ProjectScanner {
-	return &ProjectScanner{
-		scanner: bufio.NewScanner(r),
+	if err != nil {
+		return projecArray, fmt.Errorf("The meta file is empty add the project to fix this\n\ngit -p <path/to/project/\n")
 	}
-}
 
-func (s *ProjectScanner) Note() Project {
-	return s.currentNote
-}
-
-func (s *ProjectScanner) Err() error {
-	if s.err != nil {
-		return s.err
+	contents, err := io.ReadAll(f)
+	if err != nil {
+		return projecArray,err
 	}
-	return s.scanner.Err()
+	err = json.Unmarshal(contents, &projecArray)
+	if err != nil {
+		return projecArray,err
+	}
+	if len(projecArray) == 0 {
+		return projecArray, common.NoNotesError{}
+	}
+	return projecArray,nil
 }
 
-func (s *ProjectScanner) Scan() bool {
-	return false
-}
 func joinByTitle(notes *[]Project) (io.Reader, error) {
 	f, err := os.OpenFile(JOINED_DELETE, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -100,7 +98,7 @@ func joinByTitle(notes *[]Project) (io.Reader, error) {
 		return nil, err
 	}
 
-	if err := lib.Edit(JOINED_DELETE); err != nil {
+	if err := common.Edit(JOINED_DELETE); err != nil {
 		return nil, err
 	}
 
@@ -125,7 +123,7 @@ func deleteByTitle(r io.Reader, notes *[]Project) error {
 	}
 
 	if len(updatedProjectsData) == len(*notes) {
-		lib.InColors(lib.Red, "Nothing to delete ...\n")
+		terminal.InColors(terminal.Red, "Nothing to delete ...\n")
 		return nil
 	}
 
@@ -149,7 +147,7 @@ func processNotes(notes []Project, titles []string) ([]*Project, chan error) {
 	for _, note := range notes {
 		formatted, err := note.Format()
 		if err != nil {
-			note.saveProject()
+			note.SaveProject()
 			formatted = note.GetPath()
 		}
 		if !slices.Contains(titles, formatted) {

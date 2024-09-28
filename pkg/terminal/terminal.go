@@ -1,4 +1,4 @@
-package lib
+package terminal
 
 import (
 	"fmt"
@@ -226,4 +226,5 @@ func filterItems[T any](items map[string]T, input string) []string {
 
 	return keys
 }
+
 

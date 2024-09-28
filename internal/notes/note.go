@@ -1,18 +1,20 @@
 package notes
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type DateLayout string
@@ -119,7 +121,7 @@ func (n DNote) Write() error {
 	return nil
 }
 
-func dailyNote() error {
+func DailyNote() error {
 	agenda := checkAgenda()
 	now := time.Now()
 	date := now.Format(string(FileDate))
@@ -138,7 +140,7 @@ func dailyNote() error {
 
 		f.Write(buffer.Bytes())
 	}
-	err := lib.Edit(dailyNote)
+	err := common.Edit(dailyNote)
 
 	if err != nil {
 		return err
@@ -186,7 +188,7 @@ func ChoseNote() error {
 		return err
 	}
 
-	choice, err := lib.RunTerm(names)
+	choice, err := terminal.RunTerm(names)
 	if err != nil {
 		return err
 
@@ -198,7 +200,7 @@ func ChoseNote() error {
 			Date: v,
 		}
 	}
-	err = lib.Edit(chosenNote.Path)
+	err = common.Edit(chosenNote.Path)
 	if err != nil {
 		return nil
 	}

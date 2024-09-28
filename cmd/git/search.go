@@ -4,7 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"DnFreddie/goseq/lib"
+	"DnFreddie/goseq/internal/project"
+	"DnFreddie/goseq/pkg/common"
+	"DnFreddie/goseq/pkg/grep"
 	"fmt"
 	"os"
 	"strings"
@@ -27,29 +29,29 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var re lib.GrepFlag
-		var insencitive lib.GrepFlag
+		var re grep.GrepFlag
+		var insencitive grep.GrepFlag
 
-		period := lib.Period{
-			Range:  lib.All,
+		period := common.Period{
+			Range:  common.All,
 			Amount: 0,
 		}
 
 
-		projects, err := NewProjectManager().GetNotes(period)
+		projects, err := project.NewProjectManager().GetNotes(period)
 		if err != nil {
 			fmt.Printf("Faield to retrive projects: %v", err)
 			os.Exit(1)
 		}
 		if iname {
-			insencitive = lib.ToLower
+			insencitive = grep.ToLower
 
 		}
 		if regex {
-			re = lib.Regex
+			re = grep.Regex
 		}
 
-		if err := lib.Search(projects, strings.Join(args, " "), re|insencitive); err != nil {
+		if err := common.Search(projects, strings.Join(args, " "), re|insencitive); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
