@@ -9,11 +9,10 @@ import (
 	"golang.org/x/term"
 )
 
+type Key int
 
-
-type  Key int
 const (
-	Unknown  = iota
+	Unknown = iota
 	CtrlC
 	Backspace
 	Enter
@@ -24,18 +23,22 @@ const (
 )
 
 type EscapeCode string
+
 const (
 	// Escape codes
 	Clear       EscapeCode = "\033[H\033[2J\033[H" // Clear screen and reset cursor
 	ResetCursor EscapeCode = "\033[0G"             // Move cursor to the beginning of the line
 	HideCursor  EscapeCode = "\033[?25l"
-	ShowCursor  EscapeCode = "\033[?25h")
-	
+	ShowCursor  EscapeCode = "\033[?25h"
+)
+
 func clearTerminal() {
 	print(Clear)
 }
+
 type Color string
-const (// Colors
+
+const ( // Colors
 	Red    Color = "\033[31m"
 	Reset  Color = "\033[0m"
 	Green  Color = "\033[32m"
@@ -65,7 +68,6 @@ func NewTerm() Term {
 	newTerm.Start()
 	return newTerm
 }
-
 
 type Terminal struct {
 	oldState *term.State
@@ -102,8 +104,7 @@ func (t *Terminal) Clear() {
 	clearTerminal()
 }
 
-
-func Read() (Key, rune) {
+func read() (Key, rune) {
 	buf := make([]byte, 3)
 	n, err := os.Stdin.Read(buf)
 	if err != nil {
@@ -158,14 +159,21 @@ func RunTerm[T any](maps []map[string]T) (map[string]T, error) {
 		fmt.Printf("> %s\n\n", input)
 
 		filteredItems := filterItems(combinedItems, input)
+
+		//check for index out of range panic
+		if len(filteredItems) == 0 {
+			selectionIndex = 0
+		} else if selectionIndex >= len(filteredItems) {
+			selectionIndex = len(filteredItems) - 1
+		}
 		displayResults(filteredItems, selectionIndex)
 
-		key, r := Read()
+		key, r := read()
 
 		switch key {
 		case CtrlC:
-		Quit(term)
-		
+			Quit(term)
+
 		case Backspace:
 			if len(input) > 0 {
 				input = input[:len(input)-1]
@@ -176,8 +184,8 @@ func RunTerm[T any](maps []map[string]T) (map[string]T, error) {
 				return map[string]T{selected: combinedItems[selected]}, nil
 			}
 		case Escape:
-		Quit(term)
-			
+			Quit(term)
+
 		case UpArrow:
 			if selectionIndex > 0 {
 				selectionIndex--
@@ -226,5 +234,3 @@ func filterItems[T any](items map[string]T, input string) []string {
 
 	return keys
 }
-
-
