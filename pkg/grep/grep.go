@@ -166,12 +166,17 @@ func GrepMulti[T Searchable](searches []T, toParse string, flag GrepFlag) ([]map
 
 func FormatMatches(matches *[]map[string][]GrepMatch) {
 	for i, m := range *matches {
+		isFirstMatch := true
 		for _, matches := range m {
 			for _, match := range matches {
-				fmt.Printf("%s%d.%s ", Green, i+1, Reset)
-				fmt.Printf("%s%s%s\n", Blue, match.Formated, Reset)
+				if isFirstMatch {
+					 fmt.Printf("%s%d.%s ", Green, i+1, Reset)
+					fmt.Printf("%s%s%s\n", Blue, match.Formated, Reset)
+					isFirstMatch = false
+				}
 				fmt.Printf("Line:%d %s\n", match.Line, match.Match)
 			}
 		}
+		fmt.Println() 
 	}
 }

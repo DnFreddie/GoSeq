@@ -32,6 +32,13 @@ to quickly create a Cobra application.`,
 		var re grep.GrepFlag
 		var insencitive grep.GrepFlag
 
+		userInput := strings.Join(args, " ")
+
+		if userInput == "" {
+			fmt.Println("No pattern to look for ")
+			os.Exit(1)
+		}
+
 		period := common.Period{
 			Range:  common.All,
 			Amount: 0,
@@ -40,7 +47,7 @@ to quickly create a Cobra application.`,
 
 		projects, err := project.NewProjectManager().GetNotes(period)
 		if err != nil {
-			fmt.Printf("Faield to retrive projects: %v", err)
+			fmt.Printf("Faield to retrive projects: %v\n", err)
 			os.Exit(1)
 		}
 		if iname {

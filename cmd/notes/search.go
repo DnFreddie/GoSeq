@@ -4,11 +4,11 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
+	"errors"
+	"fmt"
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
 	"github.com/DnFreddie/goseq/pkg/grep"
-	"errors"
-	"fmt"
 	"os"
 	"strings"
 
@@ -27,6 +27,14 @@ It will then display the matches and allow you to open the desired note.`,
 
 		var re grep.GrepFlag
 		var insencitive grep.GrepFlag
+
+		userInput := strings.Join(args, " ")
+
+		if userInput == "" {
+			fmt.Println("No pattern to look for ")
+			os.Exit(1)
+		}
+
 		period := common.Period{
 			Range:  common.All,
 			Amount: 0,
@@ -49,7 +57,7 @@ It will then display the matches and allow you to open the desired note.`,
 				fmt.Println(err)
 			}
 		}
-		if err := common.Search(notes, strings.Join(args, " "), re|insencitive); err != nil {
+		if err := common.Search(notes, userInput, re|insencitive); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
