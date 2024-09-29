@@ -3,7 +3,32 @@
 
 GoSeq helps you manage daily and project-based notes, along with tracking TODOs in your code, similar to the `fixme` tag.
 
-## Features:
+## Table of Contents
+1. [Features](#features)
+2. [Installation](#installation)  
+   - [GitHub Credentials](#github-credentials)
+   - [Adding Autocompletion](#adding-autocompletion)
+3. [How It Works](#how-it-works)  
+   - [Daily Notes](#1-daily-notes)  
+     - [Create Daily Note](#create-daily-note)  
+     - [Listing Notes](#listing-notes)  
+     - [Join Notes](#join-notes)  
+     - [Search Within Notes](#search-within-notes)  
+     - [Delete Notes](#delete-notes)  
+   - [Projects/Repos](#2-projectsrepos)  
+     - [Project Notes](#project-notes)  
+     - [List Projects](#list-projects)  
+     - [Delete Projects](#delete-projects)  
+   - [TODO Tracking](#3-todo-tracking-todooos)  
+     - [Urgency System](#urgency-system)  
+     - [Scan TODOs](#scan-todos)  
+     - [Post TODOs](#post-todos)
+4. [Help](#help)
+5. [Lock Error](#lock-error)
+
+---
+
+## Features
 - **Daily Notes Management**  
     - Create and manage notes for any time period.
 - **Project-Based Notes**  
@@ -11,7 +36,53 @@ GoSeq helps you manage daily and project-based notes, along with tracking TODOs 
 - **TODO Management**  
     - Tracks TODOs in your codebase, automatically pushing issues to GitHub.
 
-[Installation](#installation)
+---
+
+## Installation  
+Install GoSeq using the following command:
+
+```bash 
+go install github.com/DnFreddie/goseq@latest
+```
+
+### GitHub Credentials  
+GoSeq retrieves your GitHub credentials from `$HOME/.config/.GoSeq.yaml` or `$HOME/.GoSeq`.  
+If no credentials are found, GoSeq will prompt you to provide them.
+
+Example `.GoSeq.yaml` config file:
+
+```yaml
+token: <personal-token>
+```
+
+To generate a Personal Access Token, visit [GitHub Settings](https://github.com/settings/tokens).  
+Ensure the token has full access to private repositories.
+
+---
+
+### Adding Autocompletion
+
+To enable command autocompletion:
+
+```bash
+# create the user completion directory
+mkdir ~/.bash_completion.d/
+# Generate the completion
+goseq completion bash > ~/.bash_completion.d/goseq_completion.sh
+# Make it executable
+chmod +x ~/.bash_completion.d/goseq_completion.sh
+```
+
+Add the following lines to your `.bashrc`:
+
+```bash
+# Load custom bash completions
+if [ -d ~/.bash_completion.d ]; then
+    for file in ~/.bash_completion.d/*; do
+        source "$file"
+    done
+fi
+```
 
 ---
 
@@ -23,39 +94,33 @@ GoSeq creates a note for each day, which can be queried or combined as needed.
 #### Create Daily Note  
 - Open a new daily note or access an existing one.  
 - Notes are stored in `$HOME/Documents/Agenda/`.
+
 ```bash
 goseq new
 ```
 
 #### Listing Notes  
 - List all daily notes and choose the one you wish to edit:
+
 ```bash
 goseq list
 ```
 
 #### Join Notes  
 - Combine multiple notes (from a specific period like a week or a year) into one.  
-    -  the defualt is from one week 
+    - The default is one week.  
 - Any changes made to the combined note are applied to the original notes.
-
-`-r` is for datetime
-`-t` How many times ex. notes from 3 weeks
 
 ```bash
 goseq join -r <week|day|year|all> -t 3
 ```
----
 
-#### Search Within Notes
-
-This feature allows you to search for specific patterns within your notes and select the one you wish to open.
+#### Search Within Notes  
+Search for specific patterns within your notes:
 
 ```bash
-# GoSeq will join the results, so you don't need to worry about the quotes.
 goseq search test agenda
 ```
-
-The flags used are similar to those in `grep`, making them familiar to users.
 
 ##### Case Insensitive Search: `-i`
 
@@ -63,70 +128,62 @@ The flags used are similar to those in `grep`, making them familiar to users.
 goseq search -i test agenda  
 ```
 
-#####  Regex: `-E`
+##### Regex Search: `-E`
 
 ```bash
 goseq search -E ^test$agenda
 ```
 
----
-
 ##### Combining Flags
-
-You can combine both flags for more flexible searching:
 
 ```bash
 goseq search -i -E ^TEST$AGENDA
 ```
 
-
-#### Delete Notes
-
-It opens a names  of the joined files inside the editor.
-And removes the one that has been deleted in the document by the user.
+#### Delete Notes  
+Open joined files in the editor and remove the one deleted in the document by the user.
 
 ```bash 
-goseq delte 
+goseq delete 
 ```
 
---- 
+---
 
 ### 2. Projects/Repos
 
 #### Project Notes  
--  `-r` Open the most recently accessed project note.  
+- Use the `-r` flag to open the most recently accessed project note.  
     - If no recent note is found, you’ll be prompted to choose a project manually:
 
 ```bash
-#Open a recent Project
 goseq git -r 
 ```
-- Optionally, provide a path to the directory containing the repository or project:
+
+- Or, provide a path to the directory containing the repository or project:
 
 ```bash
 goseq git --path <Repo/dir containing repos>
 ```
-`git --path` adds the project to the file called  `$HOME/Documents/Agenda/projects/.PROJECTS_META.json`
 
-**List Projects**
-- To list porject that were added use 
+This adds the project to the `$HOME/Documents/Agenda/projects/.PROJECTS_META.json` file.
+
+#### List Projects  
+To list added projects:
 
 ```bash 
 goseq git list
 ```
-**Delete Projects**
 
-It opens a names  of the joined files inside the editor.
-And removes the one that has been deleted in the document by the user.
+#### Delete Projects  
+Opens the names of the joined files inside the editor, removing those deleted in the document by the user.
 
 ```bash 
-goseq git  delte 
+goseq git delete 
 ```
-
 
 ---
 
-### 3. TODO Tracking (TODOOOS)  
+### 3. TODO Tracking (TODOOOS)
 
 GoSeq finds and tracks TODOs in your project, compares them with existing TODOs, and pushes any new issues to GitHub.
 
@@ -135,18 +192,19 @@ The urgency system is adapted from the [Fixmee Emacs extension](https://github.c
 The urgency of a TODO is indicated by repeating the final character of the keyword (e.g., TODOOOO for a critical issue). The `scan` command sorts TODOs based on their urgency.
 
 #### Scan TODOs  
-- Search for TODOs in the provided directory and generate a report:
+Search for TODOs in the provided directory and generate a report:
+
 ```bash
 goseq git scan -p <Repo/dir containing repos>
 ```
-- `-a` add the project to the Known project after scaning
+
+- Add the project to the known project list after scanning:
 
 ```bash
-#if dir has more repos it will also save them
 goseq git scan -a -p <Repo/dir containing repos>
 ```
 
-##### Example Report 
+##### Example Report  
 ```md
 Project: DnFreddie/Blog
 ------------------------------
@@ -159,72 +217,37 @@ Urgency: 5
 
 #### Post TODOs  
 Post new TODO issues to GitHub
+
 This will check weather todos already exist on the github.
+
 Then ask you do you want to push them.
-And push the onese that do not exist.
+
+And push the ones that do not exist.
 
 ```bash
 goseq git post  -p <path/to/the/repo>
 ```
 ![Goseq Post Example](/public/static/goseqPlan.png)
 
----
-
-
-### GitHub Credentials  
-GoSeq retrieves your GitHub credentials from `$HOME/.config/.GoSeq.yaml` or `$HOME/.GoSeq`.  
-If no credentials are found, GoSeq will prompt you to provide them. Example config:
-
-```yaml
-token: <personal-token>
-```
-
-To generate a Personal Access Token, visit [GitHub Settings](https://github.com/settings/tokens).  
-Ensure the token has full access to private repositories.
 
 ---
 
-## Usage  
+## Help 
 For help with any commands, simply run `goseq` without arguments:
 
 ```bash
 goseq
 ```
-### Lock ERROR
-GoSeq uses lock files so  they are stored in /tmp/
 
-if the program stops with the message `log not aquaierd`
+---
 
-after the crach u have to delete it mannualy or reboot the system 
+## Lock Error  
+GoSeq uses lock files stored in `/tmp/`. If the program stops with the message `log not acquired`, you may need to delete the lock manually or reboot the system.
 
-**Here are the names of the lock files**
+**Lock Files:**
 - `/tmp/.goseq_delete.lock`
 - `/tmp/.goseq_project_delete.lock`
 - `/tmp/.goseq_join.lock`
 - `/tmp/.goseq_project_join.lock`
----
 
-##  Installation  
-```bash 
-go install github.com/DnFreddie/goseq@latest
-```
-### To add autocompliton
-```bash
-
-# create the user completion  directory
-mkdir ~/.bash_completion.d/
-# Generate the completion
-goseq completion bash > ~/.bash_completion.d/goseq_completion.sh
-# Make it execuatble 
-chmod +x ~/.bash_completion.d/goseq_completion.sh
-```
-Addd to you .bashrc following lines
-```bash
-# Load custom bash completions
-if [ -d ~/.bash_completion.d ]; then
-    for file in ~/.bash_completion.d/*; do
-        source "$file"
-    done
-fi
-
-```
+--- 
