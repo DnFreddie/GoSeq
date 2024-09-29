@@ -10,6 +10,9 @@ GoSeq helps you manage daily and project-based notes, along with tracking TODOs 
     - Keep notes linked to specific projects or repositories.
 - **TODO Management**  
     - Tracks TODOs in your codebase, automatically pushing issues to GitHub.
+
+[Installation](#instalation)
+
 ---
 
 ## How It Works
@@ -201,14 +204,27 @@ after the crach u have to delete it mannualy or reboot the system
 - `/tmp/.goseq_project_join.lock`
 ---
 
-## Build
-
-To build GoSeq:
-
-```bash
-export GOPATH=$PWD
-go get .
-go build .
+##  Installation  
+```bash 
+go install github.com/DnFreddie/goseq@latest
 ```
+### To add autocompliton
+```bash
 
+# create the user completion  directory
+mkdir ~/.bash_completion.d/
+# Generate the completion
+goseq completion bash > ~/.bash_completion.d/goseq_completion.sh
+# Make it execuatble 
+chmod +x ~/.bash_completion.d/goseq_completion.sh
+```
+Addd to you .bashrc following lines
+```bash
+# Load custom bash completions
+if [ -d ~/.bash_completion.d ]; then
+    for file in ~/.bash_completion.d/*; do
+        source "$file"
+    done
+fi
 
+```
