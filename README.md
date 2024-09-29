@@ -11,7 +11,7 @@ GoSeq helps you manage daily and project-based notes, along with tracking TODOs 
 - **TODO Management**  
     - Tracks TODOs in your codebase, automatically pushing issues to GitHub.
 
-[Installation](#instalation)
+[Installation](#installation)
 
 ---
 
