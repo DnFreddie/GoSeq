@@ -1,8 +1,6 @@
 package notes
 
 import (
-	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"fmt"
@@ -16,6 +14,9 @@ import (
 	"sync/atomic"
 	"time"
 	"unicode"
+
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"github.com/spf13/viper"
 )
@@ -108,7 +109,7 @@ func getNotes(pr common.Period) ([]DNote, error) {
 }
 func joinNotes(notes *[]DNote) (io.Reader, error) {
 	if len(*notes) == 0 {
-		return nil, fmt.Errorf("no DailyNotes found; try to create one with goseq new")
+		return nil, fmt.Errorf("No DailyNotes found for this period!\nTry to create one with goseq new or change the date range")
 	}
 
 	f, err := os.OpenFile(JOINED, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
