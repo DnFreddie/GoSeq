@@ -4,11 +4,11 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
+	"fmt"
+
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
 	"github.com/DnFreddie/goseq/pkg/locker"
-	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -37,15 +37,15 @@ var JoinCmd = &cobra.Command{
 		notesArray, err := noteManager.GetNotes(period)
 		if err := locker.Lock(); err != nil {
 			fmt.Println(err)
-			os.Exit(1)
 
+			return
 		}
 		defer locker.Unlock()
 
 		reader, err := noteManager.JoinNotesWithContents(&notesArray)
 		if err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			return
 		}
 
 		scanner := notes.NewDNoteScanner(reader)

@@ -4,12 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
 	"github.com/DnFreddie/goseq/pkg/locker"
-	"errors"
-	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ deleted by the user
 		if err != nil {
 			if errors.Is(err, common.NoNotesError{}) {
 				fmt.Println(err)
-				os.Exit(1)
+				return
 			}
 
 			fmt.Println(err)
@@ -43,19 +43,19 @@ deleted by the user
 		}
 		if err := locker.Lock(); err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			return
 		}
 		defer locker.Unlock()
 
 		reader, err := noteManager.JoinNotesByTitle(&notes)
 		if err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			return
 		}
 
 		if err := noteManager.DeleteByTitle(reader, &notes); err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			return
 		}
 
 	},
