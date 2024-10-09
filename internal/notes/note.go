@@ -124,8 +124,7 @@ func DailyNote() error {
 	date := now.Format(string(FileDate))
 	formattedTime := now.Format(string(FullDate))
 	var buffer bytes.Buffer
-	buffer.Write([]byte(formattedTime))
-	buffer.Write([]byte("\n" + strings.Repeat("-", len(formattedTime))))
+	buffer.Write([]byte(fmt.Sprintf("# %v", formattedTime)))
 
 	dailyNote := path.Join(agenda, date+".md")
 	if _, err := os.Stat(dailyNote); errors.Is(err, os.ErrNotExist) {
