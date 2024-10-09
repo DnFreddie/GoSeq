@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"strings"
 	"time"
-
 )
 
 type DNoteScanner struct {
@@ -33,23 +33,20 @@ func (s *DNoteScanner) Err() error {
 
 func (s *DNoteScanner) Scan() bool {
 	isCollecting := false
-	layout := string(FullDate)
-
 	for s.scanner.Scan() {
 		line := s.scanner.Text()
-		trimmedLine := bytes.TrimSpace([]byte(line))
+		trimmedLine := strings.TrimSpace(line)
 
-		if parsedTime, err := time.Parse(layout, string(trimmedLine)); err == nil {
+		if date, ok := parseDateFromSeparator(trimmedLine); ok {
 			if isCollecting {
 				return true
 			}
-			s.currentNote = DNote{Date: parsedTime }
-
+			s.currentNote = DNote{Date: date}
 			isCollecting = true
 			continue
 		}
 
-		if checkSeparator(string(trimmedLine)) {
+		if checkSeparator(trimmedLine) {
 			if isCollecting {
 				s.currentNote.Contents = bytes.TrimRight(s.currentNote.Contents, "\n")
 				return true
@@ -67,21 +64,33 @@ func (s *DNoteScanner) Scan() bool {
 		s.currentNote.Contents = bytes.TrimRight(s.currentNote.Contents, "\n")
 		return true
 	}
-
 	return false
 }
 
 func checkSeparator(line string) bool {
-	if len(line) < 4 || line[0] != '#' {
-		return false
+	return strings.HasPrefix(line, "#-") && strings.HasSuffix(line, "-")
+}
+
+func parseDateFromSeparator(line string) (time.Time, bool) {
+	if !strings.HasPrefix(line, "#-") || !strings.HasSuffix(line, "-") {
+		return time.Time{}, false
 	}
-	var hyphenCount int
-	for i := 1; i < len(line); i++ {
-		if line[i] == '-' {
-			hyphenCount++
-		} else {
-			break
+
+	dateStr := strings.Trim(line, "#-")
+	dateStr = strings.TrimSpace(dateStr)
+
+	layouts := []string{
+		"January 2 2006",
+		"January 03 2006",
+		"Jan 2 2006",
+		"Jan 02 2006",
+	}
+
+	for _, layout := range layouts {
+		if date, err := time.Parse(layout, dateStr); err == nil {
+			return date, true
 		}
 	}
-	return hyphenCount >= 3
+
+	return time.Time{}, false
 }

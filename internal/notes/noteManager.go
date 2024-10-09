@@ -25,7 +25,7 @@ const (
 	JOINED        = "/tmp/.go_seq_notes_joined.md"
 	JOINED_DELETE = "/tmp/.go_seq_notes_delete_joined.md"
 
-	EOF separator = "#------------------------------"
+	EOF separator = "#-----------------------------"
 )
 
 type DailyNoteManager struct{}
@@ -107,6 +107,7 @@ func getNotes(pr common.Period) ([]DNote, error) {
 
 	return noteArray, nil
 }
+
 func joinNotes(notes *[]DNote) (io.Reader, error) {
 	if len(*notes) == 0 {
 		return nil, fmt.Errorf("No DailyNotes found for this period!\nTry to create one with goseq new or change the date range")
@@ -122,8 +123,11 @@ func joinNotes(notes *[]DNote) (io.Reader, error) {
 		}
 
 		var buffer bytes.Buffer
+		formated, _ := v.Format()
+		buffer.WriteString(fmt.Sprintf("#--------------%v---------------\n", formated))
 		buffer.Write(v.Contents)
 		buffer.WriteString("\n\n")
+
 		buffer.WriteString(string(EOF))
 		buffer.WriteString("\n\n")
 

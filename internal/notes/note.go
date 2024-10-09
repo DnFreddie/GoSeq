@@ -1,8 +1,6 @@
 package notes
 
 import (
-	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"errors"
@@ -13,6 +11,9 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"github.com/spf13/viper"
 )
@@ -103,11 +104,6 @@ func (n DNote) Write() error {
 	defer f.Close()
 
 	writer := bufio.NewWriter(f)
-
-	_, err = writer.WriteString(n.parseDate() + "\n")
-	if err != nil {
-		return err
-	}
 
 	_, err = writer.Write(n.Contents)
 	if err != nil {
