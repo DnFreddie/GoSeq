@@ -4,10 +4,11 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"os"
+
 	"github.com/DnFreddie/goseq/cmd/git"
 	"github.com/DnFreddie/goseq/cmd/notes"
 	"github.com/DnFreddie/goseq/config"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -65,4 +66,5 @@ func addSubcommandsPallet() {
 	RootCmd.AddCommand(notes.SearchCmd)
 	RootCmd.AddCommand(notes.ListCmd)
 	RootCmd.AddCommand(notes.DeleteCmd)
+	RootCmd.AddCommand(notes.TodoCmd)
 }
