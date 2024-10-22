@@ -1,8 +1,6 @@
 package project
 
 import (
-	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/terminal"
 	"context"
 	"fmt"
 	"io"
@@ -10,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"golang.org/x/sync/semaphore"
 )
@@ -114,33 +115,32 @@ func ListProjects(pt string) ([]Project, error) {
 
 }
 func ReadRecent(list bool) error {
-    if !list {
-        p, err := readRecentProject()
-        if err != nil {
-            fmt.Println("No recent projects found, listing added projects instead")
-            return ReadRecent(true)
-        }
-        return common.Edit(string(p) + ".md")
-    }
-    
-    projects, err := getSavedProjects()
-    if err != nil {
-        return err
-    }
-    return choseProject(&projects).EditProject()
+	if !list {
+		p, err := readRecentProject()
+		if err != nil {
+			fmt.Println("No recent projects found, listing added projects instead")
+			return ReadRecent(true)
+		}
+		return common.Edit(string(p) + ".md")
+	}
+
+	projects, err := getSavedProjects()
+	if err != nil {
+		return err
+	}
+	return choseProject(&projects).EditProject()
 }
 
 func readRecentProject() ([]byte, error) {
-    if _, err := os.Stat(ENV_VAR); os.IsNotExist(err) {
-        return nil, err
-    }
-    
-    f, err := os.Open(ENV_VAR)
-    if err != nil {
-        return nil, err
-    }
-    defer f.Close()
-    
-    return io.ReadAll(f)
-}
+	if _, err := os.Stat(ENV_VAR); os.IsNotExist(err) {
+		return nil, err
+	}
 
+	f, err := os.Open(ENV_VAR)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return io.ReadAll(f)
+}

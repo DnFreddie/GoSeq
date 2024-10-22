@@ -14,9 +14,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -68,66 +66,26 @@ func (p Project) Delete() error {
 
 }
 
-// TODO REFACTOR
+// GitFileReader interface makes testing easier by allowing mock implementations
 func NewProject(localPath string) (*Project, error) {
-	absoluteP, err := makeAbsolute(localPath)
+	pathAbs, err := filepath.Abs(localPath)
 	if err != nil {
-		slog.Error("Doesn't exist:", "path", path.Base(localPath))
+		slog.Error("Path doesn't exist", "path", path.Base(localPath))
 		return nil, err
 	}
 
-	HEAD := filepath.Join(absoluteP, ".git/HEAD")
-	CONFIG := filepath.Join(absoluteP, ".git/config")
-	reBranch := regexp.MustCompile(`refs/heads/(\w+)`)
-	reUrl := regexp.MustCompile(`url = (.+\.git)$`)
-
-	var defaultBranch string
-	var gitURL string
-	var repoName string
-	var rOwner string
-
-	headFile, err := os.Open(HEAD)
+	reader := NewFSGitReader(pathAbs)
+	gitConfig, err := extractGitConfig(reader)
 	if err != nil {
-		slog.Warn("Failed to open HEAD file:", "error", err)
-	} else {
-		defer headFile.Close()
-		reader := bufio.NewReader(headFile)
-		defaultBranch, err = extractMatch(reader, reBranch)
-		if err != nil {
-			slog.Warn("Failed to extract default branch:", "error", err)
-		}
-	}
-
-	configFile, err := os.Open(CONFIG)
-	if err != nil {
-		slog.Warn("Failed to open config file:", "error", err)
-	} else {
-		defer configFile.Close()
-		configReader := bufio.NewReader(configFile)
-		gitURL, err = extractMatch(configReader, reUrl)
-		if err != nil {
-			slog.Warn("Failed to extract URL:", "error", err)
-		}
-	}
-
-	if gitURL != "" {
-		parts := strings.Split(gitURL, "/")
-		if len(parts) > 0 {
-			rOwner = parts[len(parts)-2]
-			repoName = strings.TrimSuffix(parts[len(parts)-1], ".git")
-		}
-	}
-
-	if repoName == "" {
-		return nil, fmt.Errorf("failed to determine repository name from URL: %s", gitURL)
+		return nil, fmt.Errorf("failed to extract git config: %w", err)
 	}
 
 	return &Project{
-		Name:          repoName,
-		Location:      absoluteP,
-		DefaultBranch: defaultBranch,
-		Url:           gitURL,
-		Owner:         rOwner,
+		Name:          gitConfig.repoName,
+		Location:      pathAbs,
+		DefaultBranch: gitConfig.defaultBranch,
+		Url:           gitConfig.url,
+		Owner:         gitConfig.owner,
 	}, nil
 }
 
@@ -166,43 +124,6 @@ func printSortedTodos(issueKey string, todos []todo.Todo) {
 	}
 
 }
-func extractMatch(reader io.Reader, re *regexp.Regexp) (string, error) {
-	s := bufio.NewScanner(reader)
-	for s.Scan() {
-		line := s.Text()
-		matches := re.FindStringSubmatch(line)
-		if matches != nil {
-			captureGroup := matches[1]
-			return captureGroup, nil
-		}
-	}
-
-	if err := s.Err(); err != nil {
-		return "", err
-	}
-
-	return "", nil
-}
-func makeAbsolute(fPath string) (string, error) {
-	var dest string
-	if !filepath.IsAbs(fPath) {
-		pwd, err := os.Getwd()
-		if err != nil {
-			log.Fatal("Can't get the current working directory", err)
-		}
-		dest = filepath.Join(pwd, fPath)
-
-	} else {
-		dest = fPath
-	}
-	_, err := os.Stat(dest)
-	if os.IsNotExist(err) {
-		return "", err
-	}
-
-	return dest, nil
-}
-
 func (p *Project) SaveProject() error {
 	PROJECTS := viper.GetString("PROJECTS")
 	var projects []Project
