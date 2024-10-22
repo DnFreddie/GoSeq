@@ -1,12 +1,18 @@
 package common
 
 import (
-	"github.com/DnFreddie/goseq/pkg/grep"
 	"bufio"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
+	"time"
+
+	"github.com/DnFreddie/goseq/pkg/grep"
+	"github.com/rogpeppe/go-internal/lockedfile"
 )
 
 func Edit(fPath string) error {
@@ -62,4 +68,57 @@ func OpenMatched(matchArray *[]map[string][]grep.GrepMatch) error {
 		return fmt.Errorf("scanner error: %w", err)
 	}
 	return nil
+}
+
+// Tries Creating  a Locked File with timeout 3s
+func CreteFLocked(path string) (*lockedfile.File, error) {
+	done := make(chan struct{})
+	var f *lockedfile.File
+	var openErr error
+
+	go func() {
+		f, openErr = lockedfile.Create(path)
+		close(done)
+	}()
+
+	select {
+	case <-time.After(3 * time.Second):
+		return nil, FLockedErr{}
+
+	case <-done:
+		if openErr != nil {
+			return nil, fmt.Errorf("error opening joined file: %w", openErr)
+		}
+	}
+	return f, nil
+}
+
+// Find traverses a directory and applies a condition function to each DirEntry.
+// It returns a slice of items of type T that match the condition and a combined error if any errors occurred.
+func Find[T any](dir string, condition func(fs.DirEntry) (T, bool)) ([]T, error) {
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, fmt.Errorf("error getting absolute path: %w", err)
+	}
+
+	var results []T
+	var errorsArr []error
+
+	walk := func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			errorsArr = append(errorsArr, fmt.Errorf("error accessing path %s: %w", path, err))
+			return nil
+		}
+
+		if item, ok := condition(d); ok {
+			results = append(results, item)
+		}
+		return nil
+	}
+
+	err = filepath.WalkDir(absDir, walk)
+	if err != nil {
+		errorsArr = append(errorsArr, err)
+	}
+	return results, errors.Join(errorsArr...)
 }

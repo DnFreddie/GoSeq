@@ -1,7 +1,13 @@
 package common
-type NoNotesError struct{}
 
-func (e NoNotesError) Error() string {
+type NoNotesFoundErr struct{}
+
+func (e NoNotesFoundErr) Error() string {
 	return "No notes available ..."
 }
 
+type FLockedErr struct{}
+
+func (e FLockedErr) Error() string {
+	return "Timeout waiting for file lock - another instance may be running"
+}

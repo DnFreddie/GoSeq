@@ -68,15 +68,15 @@ func (s *DNoteScanner) Scan() bool {
 }
 
 func checkSeparator(line string) bool {
-	return strings.HasPrefix(line, "#-") && strings.HasSuffix(line, "-")
+	return strings.HasPrefix(line, "-----") && strings.HasSuffix(line, "-")
 }
 
 func parseDateFromSeparator(line string) (time.Time, bool) {
-	if !strings.HasPrefix(line, "#-") || !strings.HasSuffix(line, "-") {
+	if !strings.HasPrefix(line, "------") || !strings.HasSuffix(line, "-") {
 		return time.Time{}, false
 	}
 
-	dateStr := strings.Trim(line, "#-")
+	dateStr := strings.Trim(line, "-")
 	dateStr = strings.TrimSpace(dateStr)
 
 	layouts := []string{

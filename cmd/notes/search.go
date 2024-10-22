@@ -6,11 +6,12 @@ package notes
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
 	"github.com/DnFreddie/goseq/pkg/grep"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ It will then display the matches and allow you to open the desired note.`,
 		noteManager := notes.NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
 		if err != nil {
-			if !errors.Is(err, common.NoNotesError{}) {
+			if !errors.Is(err, common.NoNotesFoundErr{}) {
 				fmt.Println(err)
 				os.Exit(1)
 			} else {

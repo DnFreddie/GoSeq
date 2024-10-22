@@ -9,12 +9,9 @@ import (
 
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/locker"
 
 	"github.com/spf13/cobra"
 )
-
-const DeleteLock locker.LockFile = "/tmp/.goseq_delete.lock"
 
 // deleteCmd represents the delete command
 var DeleteCmd = &cobra.Command{
@@ -41,11 +38,6 @@ deleted by the user
 			fmt.Println(err)
 
 		}
-		if err := locker.Lock(); err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer locker.Unlock()
 
 		reader, err := noteManager.JoinNotesByTitle(&notes)
 		if err != nil {

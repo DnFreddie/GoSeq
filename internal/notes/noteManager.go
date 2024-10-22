@@ -17,15 +17,12 @@ import (
 
 	"github.com/DnFreddie/goseq/pkg/common"
 	"github.com/DnFreddie/goseq/pkg/terminal"
-
 	"github.com/spf13/viper"
 )
 
 const (
 	JOINED        = "/tmp/.go_seq_notes_joined.md"
 	JOINED_DELETE = "/tmp/.go_seq_notes_delete_joined.md"
-
-	EOF separator = "#-----------------------------"
 )
 
 type DailyNoteManager struct{}
@@ -73,7 +70,7 @@ func getNotes(pr common.Period) ([]DNote, error) {
 	entries, err := os.ReadDir(AGENDA)
 	if err != nil {
 
-		return noteArray, &common.NoNotesError{}
+		return noteArray, &common.NoNotesFoundErr{}
 	}
 
 	now := time.Now()
@@ -110,32 +107,39 @@ func getNotes(pr common.Period) ([]DNote, error) {
 
 func joinNotes(notes *[]DNote) (io.Reader, error) {
 	if len(*notes) == 0 {
-		return nil, fmt.Errorf("No DailyNotes found for this period!\nTry to create one with goseq new or change the date range")
+		return nil, common.NoNotesFoundErr{}
 	}
 
-	f, err := os.OpenFile(JOINED, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	defer f.Close()
+	f, err := common.CreteFLocked(JOINED)
+	if err != nil {
+		return nil, err
+	}
 
+	defer common.CleanupFileHandler(f, JOINED)
+
+	var fullBuffer bytes.Buffer
 	for _, v := range *notes {
-		if err := v.read(); err != nil {
+		if err := v.Read(); err != nil {
 			log.Printf("Error reading note: %v", err)
 			continue
 		}
-
-		var buffer bytes.Buffer
-		formated, _ := v.Format()
-		buffer.WriteString(fmt.Sprintf("#--------------%v---------------\n", formated))
-		buffer.Write(v.Contents)
-		buffer.WriteString("\n\n")
-
-		buffer.WriteString(string(EOF))
-		buffer.WriteString("\n\n")
-
-		if _, err := f.Write(buffer.Bytes()); err != nil {
-			log.Printf("Error writing to file: %v", err)
+		formated, err := v.Format()
+		if err != nil {
+			log.Printf("Error formatting note: %v", err)
+			continue
 		}
-
+		sep := fmt.Sprintf("%v", strings.Repeat("-", 30))
+		header := fmt.Sprintf("%v%v%v\n", sep, formated, sep)
+		footer := fmt.Sprintf("%s\n\n", strings.Repeat("-", len(header)-1))
+		fmt.Fprintf(&fullBuffer, "%s%s\n\n%s",
+			header,
+			v.Contents,
+			footer)
 		v.Contents = nil
+	}
+
+	if _, err := f.Write(fullBuffer.Bytes()); err != nil {
+		return nil, fmt.Errorf("error writing to joined file: %w", err)
 	}
 
 	if err := common.Edit(JOINED); err != nil {
@@ -147,9 +151,11 @@ func joinNotes(notes *[]DNote) (io.Reader, error) {
 		return nil, fmt.Errorf("error opening edited file: %w", err)
 	}
 
-	reader := bufio.NewReader(readFile)
-
-	return &trimReader{reader: reader, file: readFile}, nil
+	reader := &trimReader{
+		reader: bufio.NewReader(readFile),
+		file:   readFile,
+	}
+	return reader, nil
 }
 
 type trimReader struct {
@@ -227,11 +233,16 @@ func deleteByTitle(r io.Reader, notes *[]DNote) error {
 }
 
 func joinByTitle(notes *[]DNote) (io.Reader, error) {
-	f, err := os.OpenFile(JOINED_DELETE, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+	if len(*notes) == 0 {
+		return nil, common.NoNotesFoundErr{}
 	}
-	defer f.Close()
+
+	f, err := common.CreteFLocked(JOINED_DELETE)
+	if err != nil {
+		return nil, err
+	}
+
+	defer common.CleanupFileHandler(f, JOINED_DELETE)
 
 	var titles []string
 	for _, note := range *notes {

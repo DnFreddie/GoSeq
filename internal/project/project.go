@@ -1,9 +1,6 @@
 package project
 
 import (
-	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/terminal"
-	"github.com/DnFreddie/goseq/pkg/todo"
 	"bufio"
 	"bytes"
 	"context"
@@ -22,6 +19,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
+	"github.com/DnFreddie/goseq/pkg/todo"
 
 	"github.com/spf13/viper"
 	"golang.org/x/sync/semaphore"
@@ -67,6 +68,7 @@ func (p Project) Delete() error {
 
 }
 
+// TODO REFACTOR
 func NewProject(localPath string) (*Project, error) {
 	absoluteP, err := makeAbsolute(localPath)
 	if err != nil {
@@ -297,7 +299,7 @@ func (p *Project) EditProject() error {
 		time.Sleep(3 * time.Second)
 	}
 
-	if err := common.Edit(project); err!= nil{
+	if err := common.Edit(project); err != nil {
 		return err
 	}
 

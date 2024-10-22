@@ -62,7 +62,7 @@ func (d DNote) Delete() error {
 
 }
 
-func (n *DNote) read() error {
+func (n *DNote) Read() error {
 	f, err := os.Open(n.Path)
 	if err != nil {
 		return err
@@ -86,36 +86,30 @@ func (n *DNote) parseDate() string {
 func (n DNote) Write() error {
 	AGENDA := viper.GetString("AGENDA")
 	if n.Path == "" && !n.Date.IsZero() {
-
 		n.Path = n.Date.Format("2006-01-02.md")
-
 	}
-
 	absPath := path.Join(AGENDA, n.Path)
-	if _, err := os.Stat(absPath); errors.Is(err, os.ErrNotExist) {
 
-		return err
+	f, err := common.CreteFLocked(absPath)
 
-	}
-	f, err := os.Create(absPath)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
 	writer := bufio.NewWriter(f)
-
 	_, err = writer.Write(n.Contents)
 	if err != nil {
+		f.Close()
 		return err
 	}
 
 	err = writer.Flush()
 	if err != nil {
+		f.Close()
 		return err
 	}
 
-	return nil
+	return f.Close()
 }
 
 func DailyNote() error {

@@ -1,8 +1,6 @@
 package project
 
 import (
-	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/terminal"
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -14,6 +12,9 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"github.com/spf13/viper"
 )
@@ -54,7 +55,7 @@ func (pm *ProjectManager) DeleteByTitle(r io.Reader, n *[]Project) error {
 
 }
 
-func getSavedProjects()([]Project,error){
+func getSavedProjects() ([]Project, error) {
 	PROJECTS := viper.GetString("PROJECTS")
 	var projecArray []Project
 	f, err := os.Open(path.Join(PROJECTS, PROJECTS_META))
@@ -65,24 +66,30 @@ func getSavedProjects()([]Project,error){
 
 	contents, err := io.ReadAll(f)
 	if err != nil {
-		return projecArray,err
+		return projecArray, err
 	}
 	err = json.Unmarshal(contents, &projecArray)
 	if err != nil {
-		return projecArray,err
+		return projecArray, err
 	}
 	if len(projecArray) == 0 {
-		return projecArray, common.NoNotesError{}
+		return projecArray, common.NoNotesFoundErr{}
 	}
-	return projecArray,nil
+	return projecArray, nil
 }
 
 func joinByTitle(notes *[]Project) (io.Reader, error) {
-	f, err := os.OpenFile(JOINED_DELETE, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+
+	if len(*notes) == 0 {
+		return nil, common.NoNotesFoundErr{}
 	}
-	defer f.Close()
+
+	f, err := common.CreteFLocked(JOINED_DELETE)
+	if err != nil {
+		return nil, err
+	}
+
+	defer common.CleanupFileHandler(f, JOINED_DELETE)
 
 	var titles []string
 	for _, note := range *notes {

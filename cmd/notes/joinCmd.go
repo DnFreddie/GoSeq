@@ -8,16 +8,11 @@ import (
 
 	"github.com/DnFreddie/goseq/internal/notes"
 	"github.com/DnFreddie/goseq/pkg/common"
-	"github.com/DnFreddie/goseq/pkg/locker"
 
 	"github.com/spf13/cobra"
 )
 
 // joinCmd represents the join command
-
-const (
-	JoinLock locker.LockFile = "/tmp/.goseq_join.lock"
-)
 
 var periodVarCmd string
 var dateRangeVar int
@@ -32,15 +27,8 @@ var JoinCmd = &cobra.Command{
 			Amount: dateRangeVar,
 		}
 
-		locker := locker.NewFileLocker(JoinLock, "Join Notes")
 		noteManager := notes.NewDailyNoteManager()
 		notesArray, err := noteManager.GetNotes(period)
-		if err := locker.Lock(); err != nil {
-			fmt.Println(err)
-
-			return
-		}
-		defer locker.Unlock()
 
 		reader, err := noteManager.JoinNotesWithContents(&notesArray)
 		if err != nil {
