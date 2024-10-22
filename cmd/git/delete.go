@@ -35,7 +35,7 @@ Chagnes to the file will delete the associated projects.
 
 		projects, err := projectManager.GetNotes(period)
 		if err != nil {
-			if errors.Is(err, common.NoNotesError{}) {
+			if errors.Is(err, common.NoNotesFoundErr{}) {
 				fmt.Println(err)
 				os.Exit(1)
 			}
