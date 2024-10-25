@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"golang.org/x/sync/semaphore"

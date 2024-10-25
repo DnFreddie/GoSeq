@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"github.com/spf13/viper"
@@ -84,7 +84,7 @@ func joinByTitle(notes *[]Project) (io.Reader, error) {
 		return nil, common.NoNotesFoundErr{}
 	}
 
-	f, err := common.CreteFLocked(JOINED_DELETE)
+	f, err := common.CreateFLocked(JOINED_DELETE)
 	if err != nil {
 		return nil, err
 	}

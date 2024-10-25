@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DnFreddie/goseq/internal/notes"
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/DnFreddie/goseq/pkg/todo"
 	"github.com/spf13/cobra"
 )

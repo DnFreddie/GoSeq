@@ -5,7 +5,7 @@ package git
 
 import (
 	"github.com/DnFreddie/goseq/internal/project"
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/DnFreddie/goseq/pkg/locker"
 
 	"errors"

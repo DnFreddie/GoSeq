@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/spf13/viper"
 )
 

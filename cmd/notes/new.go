@@ -4,7 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"github.com/DnFreddie/goseq/internal/notes"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 	"fmt"
 	"os"
 

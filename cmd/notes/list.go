@@ -4,8 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"github.com/DnFreddie/goseq/internal/notes"
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
+	"github.com/DnFreddie/goseq/internal/common"
 	"fmt"
 	"os"
 
