@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/DnFreddie/goseq/pkg/grep"
 
 	"github.com/spf13/cobra"
@@ -39,6 +40,7 @@ It will then display the matches and allow you to open the desired note.`,
 		period := common.Period{
 			Range:  common.All,
 			Amount: 0,
+			Today:  time.Now(),
 		}
 		if iname {
 			insencitive = grep.ToLower
@@ -48,7 +50,7 @@ It will then display the matches and allow you to open the desired note.`,
 			re = grep.Regex
 		}
 
-		noteManager := notes.NewDailyNoteManager()
+		noteManager := dnotes.NewDailyNoteManager()
 		notes, err := noteManager.GetNotes(period)
 		if err != nil {
 			if !errors.Is(err, common.NoNotesFoundErr{}) {

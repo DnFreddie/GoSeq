@@ -96,6 +96,9 @@ func CreteFLocked(path string) (*lockedfile.File, error) {
 // Find traverses a directory and applies a condition function to each DirEntry.
 // It returns a slice of items of type T that match the condition and a combined error if any errors occurred.
 func Find[T any](dir string, condition func(fs.DirEntry) (T, bool)) ([]T, error) {
+	if err := os.Chdir(dir); err != nil {
+		return nil, fmt.Errorf("error changing directory to %s: %w", dir, err)
+	}
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
 		return nil, fmt.Errorf("error getting absolute path: %w", err)

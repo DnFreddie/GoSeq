@@ -7,9 +7,10 @@ import (
 	"bufio"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/DnFreddie/goseq/pkg/todo"
 	"github.com/spf13/cobra"
 )
@@ -26,12 +27,13 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		n, err := notes.NewDailyNoteManager().GetNotes(common.Period{
+		n, err := dnotes.NewDailyNoteManager().GetNotes(common.Period{
 			Range:  common.All,
 			Amount: 0,
+			Today:  time.Now(),
 		})
 		if err != nil {
-			fmt.Println("Error retrieving notes:", err)
+			fmt.Println("Error retrieving dnotes:", err)
 			return
 		}
 

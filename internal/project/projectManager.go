@@ -84,7 +84,7 @@ func joinByTitle(notes *[]Project) (io.Reader, error) {
 		return nil, common.NoNotesFoundErr{}
 	}
 
-	f, err := common.CreateFLocked(JOINED_DELETE)
+	f, err := common.CreteFLocked(JOINED_DELETE)
 	if err != nil {
 		return nil, err
 	}

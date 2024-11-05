@@ -5,10 +5,10 @@ package notes
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/DnFreddie/goseq/internal/notes"
-	"github.com/DnFreddie/goseq/pkg/common"
-
+	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +25,10 @@ var JoinCmd = &cobra.Command{
 		period := common.Period{
 			Range:  common.ParseDateRange(periodVarCmd),
 			Amount: dateRangeVar,
+			Today:  time.Now(),
 		}
 
-		noteManager := notes.NewDailyNoteManager()
+		noteManager := dnotes.NewDailyNoteManager()
 		notesArray, err := noteManager.GetNotes(period)
 
 		reader, err := noteManager.JoinNotesWithContents(&notesArray)
@@ -36,7 +37,7 @@ var JoinCmd = &cobra.Command{
 			return
 		}
 
-		scanner := notes.NewDNoteScanner(reader)
+		scanner := dnotes.NewDNoteScanner(reader)
 		common.ScanJoined(scanner)
 	},
 }

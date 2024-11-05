@@ -1,4 +1,4 @@
-package notes
+package dnotes
 
 import (
 	"bufio"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DnFreddie/goseq/pkg/common"
+	"github.com/DnFreddie/goseq/internal/common"
 	"github.com/DnFreddie/goseq/pkg/terminal"
 
 	"github.com/spf13/viper"
@@ -186,4 +186,37 @@ func ChoseNote(notesArray *[]DNote) error {
 		return err
 	}
 	return nil
+}
+
+func TChooseNote(notes []BasicNote) error {
+	if len(notes) == 0 {
+		return fmt.Errorf("no notes found - create one with 'goseq new'")
+	}
+
+	var noteMaps []map[string]*BasicNote
+
+	for i := range notes {
+		displayName, err := notes[i].Format()
+		if err != nil {
+			displayName = notes[i].GetPath()
+		}
+
+		noteMap := map[string]*BasicNote{
+			displayName: &notes[i],
+		}
+		noteMaps = append(noteMaps, noteMap)
+	}
+
+	choice, err := terminal.RunTerm(noteMaps)
+	if err != nil {
+		return err
+	}
+
+	var chosenNote *BasicNote
+	for _, note := range choice {
+		chosenNote = note
+		break
+	}
+
+	return common.Edit(chosenNote.Path)
 }

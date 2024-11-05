@@ -6,9 +6,10 @@ package notes
 import (
 	"errors"
 	"fmt"
+	"time"
 
-	"github.com/DnFreddie/goseq/internal/dnotes"
 	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 
 	"github.com/spf13/cobra"
 )
@@ -17,16 +18,17 @@ import (
 var DeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Deltes daily note from the file",
-	Long: `Join notes and deltes the ones that are beeing 
+	Long: `Join dnotes and deltes the ones that are beeing 
 deleted by the user
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		period := common.Period{
 			Range:  common.All,
 			Amount: 0,
+			Today:  time.Now(),
 		}
-		noteManager := notes.NewDailyNoteManager()
-		notes, err := noteManager.GetNotes(period)
+		noteManager := dnotes.NewDailyNoteManager()
+		dnotes, err := noteManager.GetNotes(period)
 
 		if err != nil {
 
@@ -39,13 +41,13 @@ deleted by the user
 
 		}
 
-		reader, err := noteManager.JoinNotesByTitle(&notes)
+		reader, err := noteManager.JoinNotesByTitle(&dnotes)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		if err := noteManager.DeleteByTitle(reader, &notes); err != nil {
+		if err := noteManager.DeleteByTitle(reader, &dnotes); err != nil {
 			fmt.Println(err)
 			return
 		}

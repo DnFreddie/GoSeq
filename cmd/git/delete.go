@@ -4,9 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"github.com/DnFreddie/goseq/internal/project"
 	"github.com/DnFreddie/goseq/internal/common"
-	"github.com/DnFreddie/goseq/pkg/locker"
+	"github.com/DnFreddie/goseq/internal/project"
 
 	"errors"
 	"fmt"
@@ -14,8 +13,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-const DeleteProjectLock locker.LockFile = "/tmp/.goseq_project_delete.lock"
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
@@ -31,7 +28,6 @@ Chagnes to the file will delete the associated projects.
 			Amount: 0,
 		}
 		projectManager := project.NewProjectManager()
-		locker := locker.NewFileLocker(DeleteProjectLock, "Delete Projects")
 
 		projects, err := projectManager.GetNotes(period)
 		if err != nil {
@@ -43,11 +39,6 @@ Chagnes to the file will delete the associated projects.
 			fmt.Println(err)
 
 		}
-		if err := locker.Lock(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		defer locker.Unlock()
 		reader, err := projectManager.JoinNotesByTitle(&projects)
 		if err != nil {
 			fmt.Println(err)

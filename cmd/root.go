@@ -9,6 +9,7 @@ import (
 	"github.com/DnFreddie/goseq/cmd/git"
 	"github.com/DnFreddie/goseq/cmd/notes"
 	"github.com/DnFreddie/goseq/config"
+	"github.com/DnFreddie/goseq/pkg/quizz"
 
 	"github.com/spf13/cobra"
 )
@@ -67,4 +68,6 @@ func addSubcommandsPallet() {
 	RootCmd.AddCommand(notes.ListCmd)
 	RootCmd.AddCommand(notes.DeleteCmd)
 	RootCmd.AddCommand(notes.TodoCmd)
+	RootCmd.AddCommand(testCmd)
+	RootCmd.AddCommand(quizz.FlashcardsCmd)
 }

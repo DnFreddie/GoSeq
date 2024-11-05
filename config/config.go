@@ -15,10 +15,11 @@ type Configuration struct {
 	GithubToken string `mapstructure:"token"`
 }
 
-func loadConstants(homeDir string){
+func loadConstants(homeDir string) {
 	viper.Set("HOME", homeDir)
 	agenda := path.Join(homeDir, "/Documents/Agenda/")
 	viper.Set("AGENDA", agenda)
+	viper.Set("DAILIES", agenda+"/dailies")
 	viper.Set("PROJECTS", agenda+"/projects")
 
 }

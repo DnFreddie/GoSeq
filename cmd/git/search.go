@@ -4,12 +4,14 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package git
 
 import (
-	"github.com/DnFreddie/goseq/internal/project"
-	"github.com/DnFreddie/goseq/internal/common"
-	"github.com/DnFreddie/goseq/pkg/grep"
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/project"
+	"github.com/DnFreddie/goseq/pkg/grep"
 
 	"github.com/spf13/cobra"
 )
@@ -42,8 +44,8 @@ to quickly create a Cobra application.`,
 		period := common.Period{
 			Range:  common.All,
 			Amount: 0,
+			Today:  time.Now(),
 		}
-
 
 		projects, err := project.NewProjectManager().GetNotes(period)
 		if err != nil {

@@ -1,12 +1,13 @@
 package common
 
 import (
-	"github.com/DnFreddie/goseq/pkg/grep"
-	"github.com/DnFreddie/goseq/pkg/interfaces"
 	"errors"
 	"fmt"
 	"sort"
 	"sync"
+
+	"github.com/DnFreddie/goseq/internal/interfaces"
+	"github.com/DnFreddie/goseq/pkg/grep"
 )
 
 type SearchResult struct {
@@ -27,9 +28,7 @@ func Search[T interfaces.Note](notes []T, toParse string, flag grep.GrepFlag) er
 		return err
 	}
 
-	OpenMatched(&matches)
-
-	if err != nil {
+	if err := OpenMatched(&matches); err != nil {
 		return err
 	}
 

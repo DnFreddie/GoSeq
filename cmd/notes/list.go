@@ -4,10 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package notes
 
 import (
-	"github.com/DnFreddie/goseq/internal/dnotes"
-	"github.com/DnFreddie/goseq/internal/common"
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/DnFreddie/goseq/internal/common"
+	"github.com/DnFreddie/goseq/internal/dnotes"
 
 	"github.com/spf13/cobra"
 )
@@ -20,12 +22,14 @@ var ListCmd = &cobra.Command{
 	List all notes in agenda and lets you chose the one u want then it opens it and applay the changes 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		notesArray,err  := notes.NewDailyNoteManager().GetNotes(common.Period{Range: common.All,Amount: 0})
-		if err!= nil{
+		now := time.Now()
+		notesArray, err := dnotes.NewDailyNoteManager().GetNotes(common.Period{Range: common.All, Amount: 0, Today: now})
+
+		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-	if 	err = notes.ChoseNote(&notesArray);err!= nil{
+		if err = dnotes.ChoseNote(&notesArray); err != nil {
 
 			fmt.Println(err)
 			os.Exit(1)
